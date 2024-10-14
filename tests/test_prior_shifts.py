@@ -32,7 +32,7 @@ def test_sample_prior():
 
 
 def test_model():
-    model = nz.shift_model
+    model = nzp.shift_model
     prior = make_prior()
     shift = prior.sample_prior()['delta_z']
     input = np.array([prior.z, prior.nz_mean])
