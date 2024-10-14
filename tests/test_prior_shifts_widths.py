@@ -1,6 +1,6 @@
 import qp
 import numpy as np
-import nz_prior as nz
+import nz_prior as nzp
 
 def make_qp_ens(file):
     zs = file['zs']
@@ -14,7 +14,7 @@ def make_qp_ens(file):
 def make_prior():
     file = np.load('tests/dummy.npz')
     ens = make_qp_ens(file)
-    return nz.PriorShiftsWidths(ens)
+    return nzp.PriorShiftsWidths(ens)
 
 
 def test_prior():

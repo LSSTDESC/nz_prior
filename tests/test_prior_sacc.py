@@ -1,7 +1,7 @@
 import qp
 import sacc
 import numpy as np
-import nz_prior as nz
+import nz_prior as nzp
 
 
 def make_qp_ens(file):
@@ -23,7 +23,7 @@ def make_prior():
     s = sacc.Sacc()
     s.add_tracer('QPNZ', 'source_0', ens, z=zs)
     s.add_tracer('QPNZ', 'source_1', ens, z=zs)
-    return nz.PriorSacc(s)
+    return nzp.PriorSacc(s)
 
 
 def test_prior():

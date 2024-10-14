@@ -59,4 +59,4 @@ def fourier_model(nz, W):
     WW = np.zeros(len(z), dtype=complex)
     WW[:n] = W
     new_nz = np.fft.ifft(WW)
-    return [z, new_nz]
+    return [z, nz+new_nz]

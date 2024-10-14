@@ -20,7 +20,8 @@ class PriorFourier(PriorBase):
     def _find_weights(self):
         Ws = []
         for nz in self.nzs:
-            W = np.fft.fft(nz)
+            d_nz = nz - self.nz_mean
+            W = np.fft.fft(d_nz)
             W = W[:self.n]
             Ws.append(W)
         return np.array(Ws)
@@ -30,9 +31,9 @@ class PriorFourier(PriorBase):
         cov = np.cov(self.Ws.T)
         cov = make_cov_posdef(cov)
         chol = cholesky(cov)
-        self.prior_mean = mean
-        self.prior_cov = cov
-        self.prior_chol = chol
+        self.prior_mean = np.real(mean)
+        self.prior_cov = np.real(cov)
+        self.prior_chol = np.real(chol)
 
     def _get_params(self):
         return self.Ws.T
