@@ -15,10 +15,10 @@ class PriorBase():
     - get_prior: return the prior distribution of the model given
     the meadured photometric distributions.
     """
-    def __init__(self, ens):
+    def __init__(self, ens, zgrid=None):
         self._prior_base(ens)
 
-    def _prior_base(self, ens):
+    def _prior_base(self, ens, zgrid=None):
         if type(ens) is qp.ensemble.Ensemble:
             z_edges = ens.metadata()['bins'][0]
             z = 0.5 * (z_edges[1:] + z_edges[:-1])
@@ -28,7 +28,13 @@ class PriorBase():
             nzs = ens[1]
         else:
             raise ValueError("Invalid ensemble type=={}".format(type(ens)))
-        self.z = z
+
+        if zgrid is not None:
+            nzs = [np.interp(zgrid, z, nz) for nz in nzs]
+            self.z = zgrid
+        else:
+            self.z = z
+
         self.nzs = self._normalize(nzs)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nz_cov = np.cov(self.nzs, rowvar=False)
@@ -58,17 +64,12 @@ class PriorBase():
         Draws a sample from the prior distribution.
         """
         prior_mean, prior_cov, prior_chol = self.get_prior()
-        # prior_dist = mvn(prior_mean, prior_cov,
-        #                  allow_singular=True)
-        # values = prior_dist.rvs()
         prior_dist = mvn(np.zeros_like(prior_mean),
-                         np.ones_like(np.diag(prior_cov)))
+                         np.ones_like(prior_mean))
         alpha = prior_dist.rvs()
         if type(alpha) is np.float64:
             alpha = np.array([alpha])
         values = prior_mean + prior_chol @ alpha
-        #if type(values) is np.float64:
-        #    values = np.array([values])
         param_names = self._get_params_names()
         samples = {param_names[i]: values[i] for i in range(len(values))}
         return samples

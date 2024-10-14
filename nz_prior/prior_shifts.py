@@ -17,8 +17,8 @@ class PriorShifts(PriorBase):
     mean 0 and variance equal to the ratio of the standard deviation
     of the standard deviations to the mean of the standard deviations.
     """
-    def __init__(self, ens):
-        self._prior_base(ens)
+    def __init__(self, ens, zgrid=None):
+        self._prior_base(ens, zgrid=zgrid)
         self._find_prior()
 
     def _find_prior(self):

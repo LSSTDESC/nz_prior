@@ -5,7 +5,7 @@ from .prior_base import PriorBase
 from .utils import make_cov_posdef
 
 
-class PriorMoments(PriorBase):
+class PriorGP(PriorBase):
     """
     Prior for the moments model.
     The moments model assumes that meausred photometric distribution
@@ -20,8 +20,8 @@ class PriorMoments(PriorBase):
     to its eigen-values. If this fails, the covariance matrix will be
     diagonalized.
     """
-    def __init__(self, ens):
-        self._prior_base(ens) 
+    def __init__(self, ens, zgrid=None):
+        self._prior_base(ens, zgrid=zgrid)
 
     def _get_prior(self):
         self.prior_mean = self.nz_mean

@@ -1,6 +1,6 @@
 import qp
 import numpy as np
-import nz_prior as nz
+import nz_prior as nzp
 
 
 def make_qp_ens(file):
@@ -15,7 +15,7 @@ def make_qp_ens(file):
 def make_prior():
     file = np.load('tests/dummy.npz')
     ens = make_qp_ens(file)
-    return nz.PriorShifts(ens)
+    return nzp.PriorShifts(ens)
 
 
 def test_prior():
@@ -32,7 +32,7 @@ def test_sample_prior():
 
 
 def test_model():
-    model = nz.shift_model
+    model = nzp.shift_model
     prior = make_prior()
     shift = prior.sample_prior()['delta_z']
     input = np.array([prior.z, prior.nz_mean])

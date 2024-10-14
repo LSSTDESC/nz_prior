@@ -22,8 +22,8 @@ class PriorShiftsWidths(PriorBase):
     of the standard deviations to the mean of the standard deviations.
     This is similar to how the shift prior is calibrated in the shift model.
     """
-    def __init__(self, ens):
-        self._prior_base(ens)
+    def __init__(self, ens, zgrid=None):
+        self._prior_base(ens, zgrid=zgrid)
         self._find_prior()
 
     def _find_prior(self):
