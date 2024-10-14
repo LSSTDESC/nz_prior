@@ -96,3 +96,6 @@ class PriorSacc(PriorBase):
                 param_name = tracer_name + "__" + param_name
                 params_names.append(param_name)
         return np.array(params_names)
+
+    def _get_params(self):
+        return self.params

@@ -25,6 +25,9 @@ class PriorShiftsWidths(PriorBase):
     def __init__(self, ens, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self._find_prior()
+        self.params_names = self._get_params_names()
+        self.params = self._get_params()
+        self.test_prior()
 
     def _find_prior(self):
         self.shifts = self._find_shifts()
