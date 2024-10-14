@@ -12,10 +12,10 @@ def make_qp_ens(file):
     return q
 
 
-def make_prior():
+def make_prior(n=10):
     file = np.load('tests/dummy.npz')
     ens = make_qp_ens(file)
-    return nzp.PriorPCA(ens)
+    return nzp.PriorPCA(ens, npca=n)
 
 
 def test_prior():
@@ -25,6 +25,7 @@ def test_prior():
 
 
 def test_sample_prior():
-    prior = make_prior()
+    n = 10
+    prior = make_prior(n=n)
     prior_sample = prior.sample_prior()
-    assert len(list(prior_sample.values())) == len(prior.nz_mean)
+    assert len(list(prior_sample.values())) == n
