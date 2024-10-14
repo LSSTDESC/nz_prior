@@ -23,6 +23,9 @@ class PriorPCA(PriorBase):
         self.eigvals = self.eigvals[:npca]
         self.eigvecs = self.eigvecs.T
         self._find_prior()
+        self.params = self._get_params()
+        self.params_names = self._get_params_names()
+        self.test_prior()
 
     def _find_prior(self):
         self.Ws = self._find_weights()

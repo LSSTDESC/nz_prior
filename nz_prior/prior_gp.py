@@ -27,6 +27,9 @@ class PriorGP(PriorBase):
         self.prior_mean = self.nz_mean
         self.prior_cov = make_cov_posdef(self.nz_cov)
         self.prior_chol = cholesky(self.prior_cov)
+        self.params_names = self._get_params_names()
+        self.params = self._get_params()
+        self.test_prior()
 
     def _get_params(self):
         return self.nzs.T

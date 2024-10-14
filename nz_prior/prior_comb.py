@@ -20,6 +20,9 @@ class PriorComb(PriorBase):
         for i in np.arange(self.ncombs):
             self.combs[i] = norm(zmeans[i], dz/2)
         self._find_prior()
+        self.params_names = self._get_params_names()
+        self.params = self._get_params()
+        self.test_prior()
 
     def _find_prior(self):
         self.Ws = self._find_weights()

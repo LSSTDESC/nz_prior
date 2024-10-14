@@ -1,5 +1,7 @@
 import numpy as np
+from getdist import plots, MCSamples
 from scipy.stats import multivariate_normal as mvn
+from scipy.stats import kstest
 import qp
 
 
@@ -81,3 +83,54 @@ class PriorBase():
         prior_mean, prior_cov = self.get_prior()
         np.save(path+"prior_mean.npy", prior_mean)
         np.save(path+"prior_cov.npy", prior_cov)
+
+    def test_prior(self):
+        """
+        Tests the distribution of parameters is 
+        actually Gaussian.
+        """
+        params = self.params
+        shape = params.shape
+        if len(shape) == 3:
+            # For the sacc prior
+            n, m, k = shape
+            params = np.reshape(params, (n*m, k))
+        params = np.real(params)
+
+        prior_mean, prior_cov, _ = self.get_prior()
+        prior_std = np.sqrt(np.diag(prior_cov))
+
+        p_values = []
+        for i, param in enumerate(params):
+            result = kstest(param, 'norm', 
+                                   args=(prior_mean[i],
+                                         prior_std[i]))
+            p_value = result.pvalue
+            param_name = self.params_names[i]
+            if result.pvalue < 0.05:
+                print("Warning: p-value for {} being Gaussianly distributed is {}".format(param_name, p_value))
+            
+            p_values.append(p_value)
+        return p_values
+
+    def plot_prior(self, **kwargs):
+        names = self.params_names
+        params = self.params
+        shape = params.shape
+        if len(shape) == 3:
+            # For the sacc prior
+            n, m, k = shape
+            params = np.reshape(params, (n*m, k))
+        params = params.T
+        params = np.real(params)
+        chain = MCSamples(samples=params,
+          names=names,
+          settings={'mult_bias_correction_order':0,
+                'smooth_scale_2D':0.4,
+                'smooth_scale_1D':0.3})
+        g = plots.getSubplotPlotter(subplot_size=2.5)
+        g.settings.axes_fontsize = 20
+        g.settings.legend_fontsize = 20
+        g.settings.axes_labelsize = 20
+        g.triangle_plot([chain],
+                        filled=True)
