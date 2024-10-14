@@ -1,5 +1,5 @@
 [project]
-name = "nz-prior"
+name = "nz_prior"
 requires-python = ">=3.9"
 license = {file = "LICENSE"}
 readme = "README.md"
@@ -16,7 +16,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-dependencies = ['numpy', 'scipy', 'qp-prob', 'pyarrow', 'sacc']
+dependencies = ['numpy', 'scipy', 'qp-prob', 'sacc']
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
@@ -62,3 +62,6 @@ max-line-length = 110
 max-locals = 50
 max-branches = 25
 max-public-methods = 50
+
+#[tool.setuptools]
+#py-modules = []

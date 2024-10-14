@@ -5,23 +5,13 @@ from .prior_base import PriorBase
 from .utils import make_cov_posdef
 
 
-class PriorPCA(PriorBase):
+class PriorFourier(PriorBase):
     """
-    Prior for the PCA model.
+    Prior for the Fourier model.
     """
-    def __init__(self, ens, npca=5, zgrid=None):
+    def __init__(self, ens, n=10, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
-        self.npca = npca
-        d_nzs = self.nzs - self.nz_mean
-        d_cov = np.cov(d_nzs, rowvar=False)
-        self.eigvals, self.eigvecs = eig(d_cov)
-        self.eigvecs = np.real(self.eigvecs)
-        self.eigvals = np.real(self.eigvals)
-        idx = np.argsort(self.eigvals)[::-1]
-        self.eigvals = self.eigvals[idx]
-        self.eigvecs = self.eigvecs[:, :npca]
-        self.eigvals = self.eigvals[:npca]
-        self.eigvecs = self.eigvecs.T
+        self.n = n
         self._find_prior()
 
     def _find_prior(self):
@@ -30,7 +20,8 @@ class PriorPCA(PriorBase):
     def _find_weights(self):
         Ws = []
         for nz in self.nzs:
-            W = [np.dot(nz, self.eigvecs[i]) for i in np.arange(self.npca)]
+            W = np.fft.fft(nz)
+            W = W[:self.n]
             Ws.append(W)
         return np.array(Ws)
 

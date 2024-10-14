@@ -52,3 +52,11 @@ def pca_model(nz, W, eigvecs):
     z, nz = nz
     new_nz = nz + np.dot(eigvecs.T, W)
     return [z, new_nz]
+
+def fourier_model(nz, W):
+    z, nz = nz
+    n = len(W)
+    WW = np.zeros(len(z), dtype=complex)
+    WW[:n] = W
+    new_nz = np.fft.ifft(WW)
+    return [z, new_nz]
