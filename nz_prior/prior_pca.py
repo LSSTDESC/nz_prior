@@ -9,6 +9,7 @@ class PriorPCA(PriorBase):
     """
     Prior for the PCA model.
     """
+
     def __init__(self, ens, npca=5, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self.npca = npca
@@ -52,4 +53,4 @@ class PriorPCA(PriorBase):
         return self.Ws.T
 
     def _get_params_names(self):
-        return ['W_{}'.format(i) for i in range(len(self.Ws.T))]
+        return ["W_{}".format(i) for i in range(len(self.Ws.T))]

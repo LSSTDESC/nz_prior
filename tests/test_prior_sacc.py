@@ -5,24 +5,24 @@ import nz_prior as nzp
 
 
 def make_qp_ens(file):
-    zs = file['zs']
-    nzs = file['pzs']
+    zs = file["zs"]
+    nzs = file["pzs"]
     dz = np.mean(np.diff(zs))
-    zs_edges = np.append(zs - dz/2, zs[-1] + dz/2)
-    q = qp.Ensemble(qp.hist, data={"bins":zs_edges, "pdfs":nzs})
+    zs_edges = np.append(zs - dz / 2, zs[-1] + dz / 2)
+    q = qp.Ensemble(qp.hist, data={"bins": zs_edges, "pdfs": nzs})
     return q
 
 
 def make_prior():
-    file = np.load('tests/dummy.npz')
-    zs = file['zs']
-    nzs = file['pzs']
+    file = np.load("tests/dummy.npz")
+    zs = file["zs"]
+    nzs = file["pzs"]
     dz = np.mean(np.diff(zs))
-    zs_edges = np.append(zs - dz/2, zs[-1] + dz/2)
-    ens = qp.Ensemble(qp.hist, data={"bins":zs_edges, "pdfs":nzs})
+    zs_edges = np.append(zs - dz / 2, zs[-1] + dz / 2)
+    ens = qp.Ensemble(qp.hist, data={"bins": zs_edges, "pdfs": nzs})
     s = sacc.Sacc()
-    s.add_tracer('QPNZ', 'source_0', ens, z=zs)
-    s.add_tracer('QPNZ', 'source_1', ens, z=zs)
+    s.add_tracer("QPNZ", "source_0", ens, z=zs)
+    s.add_tracer("QPNZ", "source_1", ens, z=zs)
     return nzp.PriorSacc(s)
 
 

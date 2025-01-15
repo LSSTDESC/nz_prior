@@ -9,6 +9,7 @@ class PriorFourier(PriorBase):
     """
     Prior for the Fourier model.
     """
+
     def __init__(self, ens, n=10, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self.n = n
@@ -25,7 +26,7 @@ class PriorFourier(PriorBase):
         for nz in self.nzs:
             d_nz = nz - self.nz_mean
             W = np.fft.fft(d_nz)
-            W = W[:self.n]
+            W = W[: self.n]
             Ws.append(W)
         return np.array(Ws)
 
@@ -42,4 +43,4 @@ class PriorFourier(PriorBase):
         return self.Ws.T
 
     def _get_params_names(self):
-        return ['W_{}'.format(i) for i in range(len(self.Ws.T))]
+        return ["W_{}".format(i) for i in range(len(self.Ws.T))]

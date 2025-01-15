@@ -4,16 +4,16 @@ import nz_prior as nzp
 
 
 def make_qp_ens(file):
-    zs = file['zs']
-    nzs = file['pzs']
+    zs = file["zs"]
+    nzs = file["pzs"]
     dz = np.mean(np.diff(zs))
-    zs_edges = np.append(zs - dz/2, zs[-1] + dz/2)
-    q = qp.Ensemble(qp.hist, data={"bins":zs_edges, "pdfs":nzs})
+    zs_edges = np.append(zs - dz / 2, zs[-1] + dz / 2)
+    q = qp.Ensemble(qp.hist, data={"bins": zs_edges, "pdfs": nzs})
     return q
 
 
 def make_prior(n=10):
-    file = np.load('tests/dummy.npz')
+    file = np.load("tests/dummy.npz")
     ens = make_qp_ens(file)
     return nzp.PriorComb(ens, ncombs=n)
 

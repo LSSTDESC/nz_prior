@@ -22,6 +22,7 @@ class PriorShiftsWidths(PriorBase):
     of the standard deviations to the mean of the standard deviations.
     This is similar to how the shift prior is calibrated in the shift model.
     """
+
     def __init__(self, ens, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self._find_prior()
@@ -35,17 +36,19 @@ class PriorShiftsWidths(PriorBase):
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
-        shifts = [(np.average(self.z, weights=nz)-mu) for nz in self.nzs]   # mean of each nz
+        shifts = [
+            (np.average(self.z, weights=nz) - mu) for nz in self.nzs
+        ]  # mean of each nz
         return shifts
 
     def _find_widths(self):
         stds = []
         for nz in self.nzs:
             mu = np.average(self.z, weights=nz)
-            std = np.sqrt(np.average((self.z-mu)**2, weights=nz))
+            std = np.sqrt(np.average((self.z - mu) ** 2, weights=nz))
             stds.append(std)
         stds = np.array(stds)
-        std_mean = np.mean(stds)        # mean of the stds
+        std_mean = np.mean(stds)  # mean of the stds
         widths = stds / std_mean
         return widths
 
@@ -55,9 +58,7 @@ class PriorShiftsWidths(PriorBase):
         s_shift = np.std(self.shifts)
         s_width = np.std(self.widths)
         mean = np.array([m_shift, m_width])
-        cov = np.array([
-            [s_shift**2, 0],
-            [0, s_width**2]])
+        cov = np.array([[s_shift**2, 0], [0, s_width**2]])
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov
@@ -67,4 +68,4 @@ class PriorShiftsWidths(PriorBase):
         return np.array([self.shifts, self.widths])
 
     def _get_params_names(self):
-        return ['delta_z', 'width_z']
+        return ["delta_z", "width_z"]

@@ -12,11 +12,7 @@ from .utils import make_cov_posdef, is_pos_def
 
 
 class PriorSacc(PriorBase):
-
-    def __init__(self, sacc_file,
-                 model="Shifts",
-                 compute_crosscorrs="Full",
-                 **kwargs):
+    def __init__(self, sacc_file, model="Shifts", compute_crosscorrs="Full", **kwargs):
         if model == "Shifts":
             self.model = PriorShifts
         if model == "ShiftsWidths":
@@ -61,7 +57,9 @@ class PriorSacc(PriorBase):
         return np.array(params)
 
     def _get_prior(self):
-        self.prior_mean = np.array([np.mean(param_sets, axis=1) for param_sets in self.params]).flatten()
+        self.prior_mean = np.array(
+            [np.mean(param_sets, axis=1) for param_sets in self.params]
+        ).flatten()
         if self.compute_crosscorrs == "Full":
             params = []
             for param_sets in self.params:
@@ -83,7 +81,9 @@ class PriorSacc(PriorBase):
             stds = np.array(stds)
             cov = np.diag(stds**2)
         else:
-            raise ValueError("Invalid compute_crosscorrs=={}".format(self.compute_crosscorrs))
+            raise ValueError(
+                "Invalid compute_crosscorrs=={}".format(self.compute_crosscorrs)
+            )
         self.prior_cov = make_cov_posdef(cov)
         self.prior_chol = cholesky(self.prior_cov)
 
