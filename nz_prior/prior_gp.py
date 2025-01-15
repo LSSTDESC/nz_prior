@@ -20,7 +20,15 @@ class PriorGP(PriorBase):
     to its eigen-values. If this fails, the covariance matrix will be
     diagonalized.
     """
-    def __init__(self, ens, zgrid=None):
+    def __init__(self, ens, n=None, zgrid=None):
+        if n is not None:
+            if zgrid is None:
+                z_edges = ens.metadata()['bins'][0]
+                z = 0.5 * (z_edges[1:] + z_edges[:-1])
+            else:
+                z = zgrid
+            zgrid = np.linspace(z[0], z[-1], n)                                         
+
         self._prior_base(ens, zgrid=zgrid)
 
     def _get_prior(self):

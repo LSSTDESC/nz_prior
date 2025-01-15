@@ -19,6 +19,7 @@ class PriorPCA(PriorBase):
         self.eigvals = np.real(self.eigvals)
         idx = np.argsort(self.eigvals)[::-1]
         self.eigvals = self.eigvals[idx]
+        self.eigvecs = self.eigvecs[:, idx]
         self.eigvecs = self.eigvecs[:, :npca]
         self.eigvals = self.eigvals[:npca]
         self.eigvecs = self.eigvecs.T
@@ -33,7 +34,8 @@ class PriorPCA(PriorBase):
     def _find_weights(self):
         Ws = []
         for nz in self.nzs:
-            W = [np.dot(nz, self.eigvecs[i]) for i in np.arange(self.npca)]
+            dnz = nz - self.nz_mean
+            W = [np.dot(dnz, self.eigvecs[i]) for i in np.arange(self.npca)]
             Ws.append(W)
         return np.array(Ws)
 
