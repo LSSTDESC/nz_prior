@@ -5,7 +5,7 @@ from scipy.stats import kstest
 import qp
 
 
-class PriorBase():
+class PriorBase:
     """
     Base class for priors. Projectors are used to project the measured
     photometric distributions by RAIL onto the space of a given generative
@@ -17,14 +17,15 @@ class PriorBase():
     - get_prior: return the prior distribution of the model given
     the meadured photometric distributions.
     """
+
     def __init__(self, ens, zgrid=None):
         self._prior_base(ens)
 
     def _prior_base(self, ens, zgrid=None):
         if type(ens) is qp.ensemble.Ensemble:
-            z_edges = ens.metadata()['bins'][0]
+            z_edges = ens.metadata()["bins"][0]
             z = 0.5 * (z_edges[1:] + z_edges[:-1])
-            nzs = ens.objdata()['pdfs']
+            nzs = ens.objdata()["pdfs"]
         elif type(ens) is list:
             z = ens[0]
             nzs = ens[1]
@@ -46,7 +47,7 @@ class PriorBase():
 
     def _normalize(self, nzs):
         norms = np.sum(nzs, axis=1)
-        nzs = nzs/norms[:, None]
+        nzs = nzs / norms[:, None]
         return nzs
 
     def get_prior(self):
@@ -66,8 +67,7 @@ class PriorBase():
         Draws a sample from the prior distribution.
         """
         prior_mean, prior_cov, prior_chol = self.get_prior()
-        prior_dist = mvn(np.zeros_like(prior_mean),
-                         np.ones_like(prior_mean))
+        prior_dist = mvn(np.zeros_like(prior_mean), np.ones_like(prior_mean))
         alpha = prior_dist.rvs()
         if type(alpha) is np.float64:
             alpha = np.array([alpha])
@@ -81,12 +81,12 @@ class PriorBase():
         Saves the prior distribution to a file.
         """
         prior_mean, prior_cov = self.get_prior()
-        np.save(path+"prior_mean.npy", prior_mean)
-        np.save(path+"prior_cov.npy", prior_cov)
+        np.save(path + "prior_mean.npy", prior_mean)
+        np.save(path + "prior_cov.npy", prior_cov)
 
     def test_prior(self):
         """
-        Tests the distribution of parameters is 
+        Tests the distribution of parameters is
         actually Gaussian.
         """
         params = self.params
@@ -94,7 +94,7 @@ class PriorBase():
         if len(shape) == 3:
             # For the sacc prior
             n, m, k = shape
-            params = np.reshape(params, (n*m, k))
+            params = np.reshape(params, (n * m, k))
         params = np.real(params)
 
         prior_mean, prior_cov, _ = self.get_prior()
@@ -102,14 +102,16 @@ class PriorBase():
 
         p_values = []
         for i, param in enumerate(params):
-            result = kstest(param, 'norm', 
-                                   args=(prior_mean[i],
-                                         prior_std[i]))
+            result = kstest(param, "norm", args=(prior_mean[i], prior_std[i]))
             p_value = result.pvalue
             param_name = self.params_names[i]
             if result.pvalue < 0.05:
-                print("Warning: p-value for {} being Gaussianly distributed is {}".format(param_name, p_value))
-            
+                print(
+                    "Warning: p-value for {} being Gaussianly distributed is {}".format(
+                        param_name, p_value
+                    )
+                )
+
             p_values.append(p_value)
         return p_values
 
@@ -120,17 +122,20 @@ class PriorBase():
         if len(shape) == 3:
             # For the sacc prior
             n, m, k = shape
-            params = np.reshape(params, (n*m, k))
+            params = np.reshape(params, (n * m, k))
         params = params.T
         params = np.real(params)
-        chain = MCSamples(samples=params,
-          names=names,
-          settings={'mult_bias_correction_order':0,
-                'smooth_scale_2D':0.4,
-                'smooth_scale_1D':0.3})
+        chain = MCSamples(
+            samples=params,
+            names=names,
+            settings={
+                "mult_bias_correction_order": 0,
+                "smooth_scale_2D": 0.4,
+                "smooth_scale_1D": 0.3,
+            },
+        )
         g = plots.getSubplotPlotter(subplot_size=2.5)
         g.settings.axes_fontsize = 20
         g.settings.legend_fontsize = 20
         g.settings.axes_labelsize = 20
-        g.triangle_plot([chain],
-                        filled=True)
+        g.triangle_plot([chain], filled=True)

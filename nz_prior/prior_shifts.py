@@ -17,6 +17,7 @@ class PriorShifts(PriorBase):
     mean 0 and variance equal to the ratio of the standard deviation
     of the standard deviations to the mean of the standard deviations.
     """
+
     def __init__(self, ens, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self._find_prior()
@@ -29,13 +30,15 @@ class PriorShifts(PriorBase):
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
-        shifts = [(np.average(self.z, weights=nz)-mu) for nz in self.nzs]   # mean of each nz
+        shifts = [
+            (np.average(self.z, weights=nz) - mu) for nz in self.nzs
+        ]  # mean of each nz
         return shifts
 
     def _get_prior(self):
         shifts = self.shifts
         mean = np.array([np.mean(shifts)])
-        cov = np.array([[np.std(shifts)**2]])
+        cov = np.array([[np.std(shifts) ** 2]])
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov
@@ -45,4 +48,4 @@ class PriorShifts(PriorBase):
         return np.array([self.shifts])
 
     def _get_params_names(self):
-        return np.array(['delta_z'])
+        return np.array(["delta_z"])

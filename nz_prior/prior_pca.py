@@ -9,6 +9,7 @@ class PriorPCA(PriorBase):
     """
     Prior for the PCA model.
     """
+
     def __init__(self, ens, npca=5, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self.npca = npca
@@ -19,6 +20,7 @@ class PriorPCA(PriorBase):
         self.eigvals = np.real(self.eigvals)
         idx = np.argsort(self.eigvals)[::-1]
         self.eigvals = self.eigvals[idx]
+        self.eigvecs = self.eigvecs[:, idx]
         self.eigvecs = self.eigvecs[:, :npca]
         self.eigvals = self.eigvals[:npca]
         self.eigvecs = self.eigvecs.T
@@ -33,7 +35,8 @@ class PriorPCA(PriorBase):
     def _find_weights(self):
         Ws = []
         for nz in self.nzs:
-            W = [np.dot(nz, self.eigvecs[i]) for i in np.arange(self.npca)]
+            dnz = nz - self.nz_mean
+            W = [np.dot(dnz, self.eigvecs[i]) for i in np.arange(self.npca)]
             Ws.append(W)
         return np.array(Ws)
 
@@ -50,4 +53,4 @@ class PriorPCA(PriorBase):
         return self.Ws.T
 
     def _get_params_names(self):
-        return ['W_{}'.format(i) for i in range(len(self.Ws.T))]
+        return ["W_{}".format(i) for i in range(len(self.Ws.T))]
