@@ -33,8 +33,10 @@ class PriorGP(PriorBase):
         self._prior_base(ens, zgrid=zgrid)
 
     def _get_prior(self):
-        self.prior_mean = self.nz_mean
-        self.prior_cov = make_cov_posdef(self.nz_cov)
+        self.prior_mean = np.zeros_like(self.nz_mean)
+        d_nzs = self.nzs - self.nz_mean
+        d_cov = np.cov(d_nzs, rowvar=False)
+        self.prior_cov = make_cov_posdef(d_cov)
         self.prior_chol = cholesky(self.prior_cov)
         self.params_names = self._get_params_names()
         self.params = self._get_params()
