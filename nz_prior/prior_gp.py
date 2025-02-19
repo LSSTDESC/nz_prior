@@ -21,16 +21,13 @@ class PriorGP(PriorBase):
     diagonalized.
     """
 
-    def __init__(self, ens, n=None, zgrid=None):
+    def __init__(self, ens, n=None):
         if n is not None:
-            if zgrid is None:
-                z_edges = ens.metadata()["bins"][0]
-                z = 0.5 * (z_edges[1:] + z_edges[:-1])
-            else:
-                z = zgrid
-            zgrid = np.linspace(z[0], z[-1], n)
-
-        self._prior_base(ens, zgrid=zgrid)
+            z_edges = ens.metadata()["bins"][0]
+            zgrid = np.linspace(z_edges[0], z_edges[-1], n)
+            self._prior_base(ens, zgrid=zgrid)
+        else:
+            self._prior_base(ens)
 
     def _get_prior(self):
         self.prior_mean = np.zeros_like(self.nz_mean)
