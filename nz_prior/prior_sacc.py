@@ -38,6 +38,7 @@ class PriorSacc(PriorBase):
     def _make_model_objects(self, **kwargs):
         model_objs = {}
         for tracer_name in list(self.tracers.keys()):
+            print("Making model for ", tracer_name)
             tracer = self.tracers[tracer_name]
             ens = tracer.ensemble
             model_obj = self.model(ens, **kwargs)
