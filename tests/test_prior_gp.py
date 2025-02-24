@@ -15,7 +15,7 @@ def make_qp_ens(file):
 def make_prior():
     file = np.load("tests/dummy.npz")
     ens = make_qp_ens(file)
-    return nzp.PriorGP(ens)
+    return nzp.PriorGP(ens, n=10)
 
 
 def test_prior():
@@ -27,4 +27,4 @@ def test_prior():
 def test_sample_prior():
     prior = make_prior()
     prior_sample = prior.sample_prior()
-    assert len(list(prior_sample.values())) == len(prior.nz_mean)
+    assert len(list(prior_sample.values())) == len(prior.nq_mean)
