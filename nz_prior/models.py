@@ -53,6 +53,10 @@ def pca_model(nz, W, eigvecs):
     new_nz = nz + np.dot(eigvecs.T, W)
     return [z, new_nz]
 
+def gp_model(nq, nz_mean, W):
+    z, nz_mean = nz_mean
+    new_nz = nz_mean + np.dot(W, nq)
+    return [z, new_nz]
 
 def fourier_model(nz, W):
     z, nz = nz

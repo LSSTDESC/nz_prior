@@ -115,7 +115,7 @@ class PriorBase:
             p_values.append(p_value)
         return p_values
 
-    def plot_prior(self, **kwargs):
+    def plot_prior(self, mode="1D", **kwargs):
         names = self.params_names
         params = self.params
         shape = params.shape
@@ -138,4 +138,7 @@ class PriorBase:
         g.settings.axes_fontsize = 20
         g.settings.legend_fontsize = 20
         g.settings.axes_labelsize = 20
-        g.triangle_plot([chain], filled=True)
+        if mode == "2D":
+            g.triangle_plot([chain], filled=True)
+        elif mode == "1D":
+            g.plots_1d([chain], **kwargs)
