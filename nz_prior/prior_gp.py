@@ -21,27 +21,60 @@ class PriorGP(PriorBase):
     diagonalized.
     """
 
-    def __init__(self, ens, n=None, zgrid=None):
-        if n is not None:
-            if zgrid is None:
-                z_edges = ens.metadata()["bins"][0]
-                z = 0.5 * (z_edges[1:] + z_edges[:-1])
-            else:
-                z = zgrid
-            zgrid = np.linspace(z[0], z[-1], n)
+    def __init__(self, ens, n=None):
+        self.n = n
+        self._prior_base(ens)
+        self.q = self._find_q(ens, n)
+        self._find_prior()
+        self.params_names = self._get_params_names()
+        self.params = self._get_params()
 
-        self._prior_base(ens, zgrid=zgrid)
+    def _find_q(self, ens, n):
+        z_edges = ens.metadata()["bins"][0]
+        z = 0.5 * (z_edges[1:] + z_edges[:-1])
+        q = np.linspace(z[0], z[-1], n)
+        return q
+
+    def _find_prior(self):
+        self.nzs, self.nqs, self.nzqs = self._find_dnzs()
+        self.nq_mean = np.mean(self.nqs, axis=0)
+        self.nz_mean = np.mean(self.nzs, axis=0)
+        self.nzq_mean = np.mean(self.nzqs, axis=0)
+        dnqs = self.nqs - self.nq_mean
+        dnzs = self.nzs - self.nz_mean
+        dnzqs = self.nzqs - self.nzq_mean
+        cov_zzqq = np.cov(dnzqs.T)
+        cov_zz = cov_zzqq[:len(self.nz_mean), :len(self.nz_mean)]
+        cov_qq = cov_zzqq[len(self.nz_mean):, len(self.nz_mean):]
+        cov_zq = cov_zzqq[:len(self.nz_mean), len(self.nz_mean):]
+        inv_cov_qq = np.linalg.pinv(cov_qq)
+        self.W = np.dot(cov_zq, inv_cov_qq)
+
+    def _find_dnzs(self):
+        nzs = []
+        nqs = []
+        nzqs = []
+        for nz in self.nzs:
+            nq = np.interp(self.q, self.z, nz)
+            nzq = np.append(nz, nq)
+            nqs.append(nq)
+            nzs.append(nz)
+            nzqs.append(nzq)
+        nzs = np.array(nzs)
+        nqs = np.array(nqs)
+        nzqs = np.array(nzqs)
+        return nzs, nqs, nzqs
 
     def _get_prior(self):
-        self.prior_mean = self.nz_mean
-        self.prior_cov = make_cov_posdef(self.nz_cov)
+        self.prior_mean = self.nq_mean
+        d_cov = np.cov(self.nqs, rowvar=False)
+        self.prior_cov = make_cov_posdef(d_cov)
         self.prior_chol = cholesky(self.prior_cov)
         self.params_names = self._get_params_names()
         self.params = self._get_params()
-        self.test_prior()
 
     def _get_params(self):
-        return self.nzs.T
+        return self.nqs.T
 
     def _get_params_names(self):
-        return ["nz_{}".format(i) for i in range(len(self.nzs.T))]
+        return ["nq_{}".format(i) for i in range(len(self.nqs.T))]
