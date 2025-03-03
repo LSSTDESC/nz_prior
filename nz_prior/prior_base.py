@@ -115,7 +115,7 @@ class PriorBase:
             p_values.append(p_value)
         return p_values
 
-    def plot_prior(self, mode="1D", **kwargs):
+    def plot_prior(self, mode="1D", add_prior=True, **kwargs):
         names = self.params_names
         params = self.params
         shape = params.shape
@@ -138,7 +138,25 @@ class PriorBase:
         g.settings.axes_fontsize = 20
         g.settings.legend_fontsize = 20
         g.settings.axes_labelsize = 20
+        chains = [chain]
+        if add_prior:
+            samples = []
+            for i in range(1000):
+                sample = self.sample_prior()
+                _sample = np.array([s for s in sample.values()])
+                samples.append(_sample)
+            samples = np.array(samples)
+            prior_chain = MCSamples(
+                samples=samples,
+                names=names,
+                settings={
+                    "mult_bias_correction_order": 0,
+                    "smooth_scale_2D": 0.4,
+                    "smooth_scale_1D": 0.3,
+                },
+            )
+            chains.append(prior_chain)
         if mode == "2D":
-            g.triangle_plot([chain], filled=True)
+            g.triangle_plot(chains, filled=True, **kwargs)
         elif mode == "1D":
-            g.plots_1d([chain], **kwargs)
+            g.plots_1d(chains, **kwargs)
