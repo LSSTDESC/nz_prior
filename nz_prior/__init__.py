@@ -7,5 +7,5 @@ from .prior_sacc import PriorSacc
 from .prior_pca import PriorPCA
 from .prior_fourier import PriorFourier
 from .models import shift_model, shift_and_width_model, comb_model
-from .models import pca_model, fourier_model
+from .models import pca_model, linear_model, fourier_model
 from .utils import is_pos_def, make_cov_posdef, Dkl, Sym_Dkl
