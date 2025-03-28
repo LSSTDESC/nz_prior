@@ -32,7 +32,8 @@ class PriorGP(PriorBase):
     def _find_q(self, ens, n):
         z_edges = ens.metadata()["bins"][0]
         z = 0.5 * (z_edges[1:] + z_edges[:-1])
-        q = np.linspace(z[0], z[-1], n)
+        q_edges = np.linspace(z[0], z[-1], n+1)
+        q = 0.5 * (q_edges[1:] + q_edges[:-1])
         return q
 
     def _find_prior(self):
@@ -40,11 +41,8 @@ class PriorGP(PriorBase):
         self.nq_mean = np.mean(self.nqs, axis=0)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nzq_mean = np.mean(self.nzqs, axis=0)
-        dnqs = self.nqs - self.nq_mean
-        dnzs = self.nzs - self.nz_mean
         dnzqs = self.nzqs - self.nzq_mean
         cov_zzqq = np.cov(dnzqs.T)
-        cov_zz = cov_zzqq[:len(self.nz_mean), :len(self.nz_mean)]
         cov_qq = cov_zzqq[len(self.nz_mean):, len(self.nz_mean):]
         cov_zq = cov_zzqq[:len(self.nz_mean), len(self.nz_mean):]
         inv_cov_qq = np.linalg.pinv(cov_qq)
@@ -60,8 +58,8 @@ class PriorGP(PriorBase):
             nqs.append(nq)
             nzs.append(nz)
             nzqs.append(nzq)
-        nzs = np.array(nzs)
         nqs = np.array(nqs)
+        nzs = np.array(nzs)
         nzqs = np.array(nzqs)
         return nzs, nqs, nzqs
 
@@ -77,4 +75,4 @@ class PriorGP(PriorBase):
         return self.nqs.T
 
     def _get_params_names(self):
-        return ["nq_{}".format(i) for i in range(len(self.nqs.T))]
+        return ["gp_{}".format(i) for i in range(len(self.nqs.T))]

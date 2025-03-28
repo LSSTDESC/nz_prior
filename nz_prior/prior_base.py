@@ -115,40 +115,59 @@ class PriorBase:
             p_values.append(p_value)
         return p_values
 
-    def plot_prior(self, mode="1D", add_prior=True, **kwargs):
-        names = self.params_names
+    def plot_prior(
+            self,
+            order=None,
+            labels=None,
+            mode="1D",
+            add_prior=True,
+            **kwargs,
+            ):
         params = self.params
+        names = self.params_names
+        if labels is None:
+            labels = names
         shape = params.shape
         if len(shape) == 3:
             # For the sacc prior
             n, m, k = shape
             params = np.reshape(params, (n * m, k))
+        if order is not None:
+            print("Order: ", order)
+            params = params[order]
+            names = names[order]
+            labels = labels[order]
         params = params.T
         params = np.real(params)
         chain = MCSamples(
             samples=params,
             names=names,
+            labels=labels,
+            label="Measured Distribution",
             settings={
                 "mult_bias_correction_order": 0,
                 "smooth_scale_2D": 0.4,
                 "smooth_scale_1D": 0.3,
             },
         )
-        g = plots.getSubplotPlotter(subplot_size=2.5)
+        g = plots.getSubplotPlotter(subplot_size=1.5)
         g.settings.axes_fontsize = 20
         g.settings.legend_fontsize = 20
         g.settings.axes_labelsize = 20
         chains = [chain]
         if add_prior:
             samples = []
-            for i in range(1000):
+            for i in range(2000):
                 sample = self.sample_prior()
                 _sample = np.array([s for s in sample.values()])
                 samples.append(_sample)
             samples = np.array(samples)
+            if order is not None:
+                samples = samples[:, order]
             prior_chain = MCSamples(
                 samples=samples,
                 names=names,
+                label="Gaussian Prior",
                 settings={
                     "mult_bias_correction_order": 0,
                     "smooth_scale_2D": 0.4,
@@ -159,4 +178,7 @@ class PriorBase:
         if mode == "2D":
             g.triangle_plot(chains, filled=True, **kwargs)
         elif mode == "1D":
-            g.plots_1d(chains, **kwargs)
+            g.plots_1d(chains,
+                       share_y=True,
+                       **kwargs)
+        return g
