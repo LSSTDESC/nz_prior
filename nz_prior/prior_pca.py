@@ -10,36 +10,37 @@ class PriorPCA(PriorBase):
     Prior for the PCA model.
     """
 
-    def __init__(self, ens, npca=5, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self.npca = npca
+    def __init__(self, ens, n=5, zgrid=None):
+        self.n = n
+        super().__init__(ens, zgrid=zgrid)
+
+    def _compute_prior_samples(self):
+        self.funcs = self._find_funcs()
+        self.Ws = self._find_weights()
+
+    def _find_funcs(self):
         d_nzs = self.nzs - self.nz_mean
         d_cov = np.cov(d_nzs, rowvar=False)
-        self.eigvals, self.eigvecs = eig(d_cov)
-        self.eigvecs = np.real(self.eigvecs)
-        self.eigvals = np.real(self.eigvals)
-        idx = np.argsort(self.eigvals)[::-1]
-        self.eigvals = self.eigvals[idx]
-        self.eigvecs = self.eigvecs[:, idx]
-        self.eigvecs = self.eigvecs[:, :npca]
-        self.eigvals = self.eigvals[:npca]
-        self.eigvecs = self.eigvecs.T
-        self._find_prior()
-        self.params = self._get_params()
-        self.params_names = self._get_params_names()
-
-    def _find_prior(self):
-        self.Ws = self._find_weights()
+        eigvals, eigvecs = eig(d_cov)
+        eigvecs = np.real(eigvecs)
+        eigvals = np.real(eigvals)
+        idx = np.argsort(eigvals)[::-1]
+        eigvals = eigvals[idx]
+        eigvecs = eigvecs[:, idx]
+        eigvecs = eigvecs[:, :self.n]
+        eigvals = eigvals[:self.n]
+        return eigvecs.T
 
     def _find_weights(self):
         Ws = []
         for nz in self.nzs:
             dnz = nz - self.nz_mean
-            W = [np.dot(dnz, self.eigvecs[i]) for i in np.arange(self.npca)]
+            W = [np.dot(dnz, self.funcs[i]) for i in np.arange(self.n)]
             Ws.append(W)
         return np.array(Ws)
 
     def _get_prior(self):
+        self._compute_prior_samples()
         mean = np.mean(self.Ws, axis=0)
         cov = np.cov(self.Ws.T)
         cov = make_cov_posdef(cov)
@@ -48,8 +49,8 @@ class PriorPCA(PriorBase):
         self.prior_cov = cov
         self.prior_chol = chol
 
-    def _get_params(self):
+    def get_params(self):
         return self.Ws.T
 
-    def _get_params_names(self):
+    def get_params_names(self):
         return ["W_{}".format(i) for i in range(len(self.Ws.T))]

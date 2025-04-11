@@ -29,8 +29,8 @@ class PriorSacc(PriorBase):
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
         self.model_objs = self._make_model_objects(**kwargs)
-        self.params = self._find_params()
-        self.params_names = self._get_params_names()
+        self.params = self.find_params()
+        self.params_names = self.get_params_names()
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
@@ -45,11 +45,11 @@ class PriorSacc(PriorBase):
             model_objs[tracer_name] = model_obj
         return model_objs
 
-    def _find_params(self):
+    def find_params(self):
         params = []
         for tracer_name in list(self.tracers.keys()):
             model_obj = self.model_objs[tracer_name]
-            params_sets = model_obj._get_params()
+            params_sets = model_obj.get_params()
             params.append(params_sets)
         try:
             np.array(params)
@@ -88,15 +88,15 @@ class PriorSacc(PriorBase):
         self.prior_cov = make_cov_posdef(cov)
         self.prior_chol = cholesky(self.prior_cov)
 
-    def _get_params_names(self):
+    def get_params_names(self):
         params_names = []
         for tracer_name in list(self.tracers.keys()):
             model_obj = self.model_objs[tracer_name]
-            params_names_set = model_obj._get_params_names()
+            params_names_set = model_obj.get_params_names()
             for param_name in params_names_set:
                 param_name = tracer_name + "__" + param_name
                 params_names.append(param_name)
         return np.array(params_names)
 
-    def _get_params(self):
+    def get_params(self):
         return self.params

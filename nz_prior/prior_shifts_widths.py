@@ -24,12 +24,9 @@ class PriorShiftsWidths(PriorBase):
     """
 
     def __init__(self, ens, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self._find_prior()
-        self.params_names = self._get_params_names()
-        self.params = self._get_params()
+        super().__init__(ens, zgrid=zgrid)
 
-    def _find_prior(self):
+    def _compute_prior_samples(self):
         self.shifts = self._find_shifts()
         self.widths = self._find_widths()
 
@@ -49,9 +46,10 @@ class PriorShiftsWidths(PriorBase):
         stds = np.array(stds)
         std_mean = np.mean(stds)  # mean of the stds
         widths = stds / std_mean
-        return widths
+        return 1/widths
 
     def _get_prior(self):
+        self._compute_prior_samples()
         m_shift = np.mean(self.shifts)
         m_width = np.mean(self.widths)
         s_shift = np.std(self.shifts)
@@ -63,8 +61,8 @@ class PriorShiftsWidths(PriorBase):
         self.prior_cov = cov
         self.prior_chol = chol
 
-    def _get_params(self):
+    def get_params(self):
         return np.array([self.shifts, self.widths])
 
-    def _get_params_names(self):
+    def get_params_names(self):
         return ["delta_z", "width_z"]

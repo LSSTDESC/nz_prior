@@ -19,12 +19,9 @@ class PriorShifts(PriorBase):
     """
 
     def __init__(self, ens, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self._find_prior()
-        self.params_names = self._get_params_names()
-        self.params = self._get_params()
+        super().__init__(ens, zgrid=zgrid)
 
-    def _find_prior(self):
+    def _compute_prior_samples(self):
         self.shifts = self._find_shifts()
 
     def _find_shifts(self):
@@ -35,16 +32,16 @@ class PriorShifts(PriorBase):
         return shifts
 
     def _get_prior(self):
-        shifts = self.shifts
-        mean = np.array([np.mean(shifts)])
-        cov = np.array([[np.std(shifts) ** 2]])
+        self._compute_prior_samples()
+        mean = np.array([np.mean(self.shifts)])
+        cov = np.array([[np.std(self.shifts) ** 2]])
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov
         self.prior_chol = chol
 
-    def _get_params(self):
+    def get_params(self):
         return np.array([self.shifts])
 
-    def _get_params_names(self):
+    def get_params_names(self):
         return np.array(["delta_z"])

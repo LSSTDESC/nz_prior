@@ -29,7 +29,7 @@ def shift_and_width_model(nz, params):
     z, nz = nz
     nz_i = interp1d(z, nz, kind="linear", fill_value="extrapolate")
     mu = np.average(z, weights=nz)
-    pdf = nz_i((z - mu) / width + shift / width + mu)
+    pdf = nz_i((z - mu + shift) * width + mu)
     norm = np.sum(pdf)
     return [z, pdf / norm]
 

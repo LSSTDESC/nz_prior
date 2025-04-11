@@ -19,9 +19,16 @@ class PriorBase:
     """
 
     def __init__(self, ens, zgrid=None):
-        self._prior_base(ens)
-
-    def _prior_base(self, ens, zgrid=None):
+        """
+        Initializes the prior class.
+        Parameters
+        ----------
+        ens : qp.ensemble.Ensemble or list
+            Ensemble of measured photometric distributions.
+        zgrid : array_like, optional
+            Redshift grid to use for the prior. If None, the redshift
+            grid of the ensemble is used.
+        """
         if type(ens) is qp.ensemble.Ensemble:
             z_edges = ens.metadata()["bins"][0]
             z = 0.5 * (z_edges[1:] + z_edges[:-1])
@@ -38,12 +45,14 @@ class PriorBase:
         else:
             self.z = z
 
+        self.ens = ens
         self.nzs = self._normalize(nzs)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nz_cov = np.cov(self.nzs, rowvar=False)
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
+        self.prior = self.get_prior()
 
     def _normalize(self, nzs):
         norms = np.sum(nzs, axis=1)
@@ -59,7 +68,13 @@ class PriorBase:
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
 
-    def _get_prior(self):
+    def _compute_prior_samples(self):
+        raise NotImplementedError
+
+    def get_params(self):
+        raise NotImplementedError
+
+    def get_params_names(self):
         raise NotImplementedError
 
     def sample_prior(self):
@@ -72,7 +87,7 @@ class PriorBase:
         if type(alpha) is np.float64:
             alpha = np.array([alpha])
         values = prior_mean + prior_chol @ alpha
-        param_names = self._get_params_names()
+        param_names = self.get_params_names()
         samples = {param_names[i]: values[i] for i in range(len(values))}
         return samples
 
