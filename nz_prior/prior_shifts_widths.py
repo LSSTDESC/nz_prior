@@ -45,7 +45,7 @@ class PriorShiftsWidths(PriorBase):
         stds = np.array(stds)
         std_mean = np.mean(stds)  # mean of the stds
         widths = stds / std_mean
-        return 1/widths
+        return 1 / widths
 
     def _get_prior(self):
         self._compute_prior_samples()

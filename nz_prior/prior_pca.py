@@ -20,6 +20,6 @@ class PriorPCA(PriorLinear):
         idx = np.argsort(eigvals)[::-1]
         eigvals = eigvals[idx]
         eigvecs = eigvecs[:, idx]
-        eigvecs = eigvecs[:, :self.n]
-        eigvals = eigvals[:self.n]
+        eigvecs = eigvecs[:, : self.n]
+        eigvals = eigvals[: self.n]
         return eigvecs

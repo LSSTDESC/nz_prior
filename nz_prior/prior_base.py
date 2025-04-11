@@ -64,7 +64,6 @@ class PriorBase:
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
 
-
     def get_params(self):
         raise NotImplementedError
 
@@ -125,13 +124,13 @@ class PriorBase:
         return p_values
 
     def plot_prior(
-            self,
-            order=None,
-            labels=None,
-            mode="1D",
-            add_prior=True,
-            **kwargs,
-            ):
+        self,
+        order=None,
+        labels=None,
+        mode="1D",
+        add_prior=True,
+        **kwargs,
+    ):
         params = self.params
         names = self.params_names
         if labels is None:
@@ -187,7 +186,5 @@ class PriorBase:
         if mode == "2D":
             g.triangle_plot(chains, filled=True, **kwargs)
         elif mode == "1D":
-            g.plots_1d(chains,
-                       share_y=True,
-                       **kwargs)
+            g.plots_1d(chains, share_y=True, **kwargs)
         return g
