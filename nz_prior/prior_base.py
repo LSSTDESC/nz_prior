@@ -2,6 +2,7 @@ import numpy as np
 from getdist import plots, MCSamples
 from scipy.stats import multivariate_normal as mvn
 from scipy.stats import kstest
+from .utils import normalize
 import qp
 
 
@@ -46,18 +47,13 @@ class PriorBase:
             self.z = z
 
         self.ens = ens
-        self.nzs = self._normalize(nzs)
+        self.nzs = normalize(nzs)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nz_cov = np.cov(self.nzs, rowvar=False)
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
         self.prior = self.get_prior()
-
-    def _normalize(self, nzs):
-        norms = np.sum(nzs, axis=1)
-        nzs = nzs / norms[:, None]
-        return nzs
 
     def get_prior(self):
         """

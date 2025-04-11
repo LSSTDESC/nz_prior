@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.interpolate import interp1d
 from numpy.linalg import cholesky
 from .prior_base import PriorBase
 
