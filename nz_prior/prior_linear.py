@@ -24,7 +24,7 @@ class PriorLinear(PriorBase):
         Ws = []
         for nz in self.nzs:
             dnz = nz - self.nz_mean
-            W = [np.dot(dnz, self.funcs[i]) for i in np.arange(self.n)]
+            W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.n)]
             Ws.append(W)
         return np.array(Ws)
 

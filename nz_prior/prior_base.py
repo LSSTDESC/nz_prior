@@ -64,8 +64,6 @@ class PriorBase:
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
 
-    def _compute_prior_samples(self):
-        raise NotImplementedError
 
     def get_params(self):
         raise NotImplementedError

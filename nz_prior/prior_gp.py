@@ -47,8 +47,8 @@ class PriorGP(PriorBase):
     def _get_prior(self):
         self._compute_prior_samples()
         mean = np.mean(self.Ws, axis=0)
-        d_cov = np.cov(self.Ws, rowvar=False)
-        cov = make_cov_posdef(d_cov)
+        cov = np.cov(self.Ws.T)
+        cov = make_cov_posdef(cov)
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov

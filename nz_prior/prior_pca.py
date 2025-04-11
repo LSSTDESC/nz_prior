@@ -22,4 +22,4 @@ class PriorPCA(PriorLinear):
         eigvecs = eigvecs[:, idx]
         eigvecs = eigvecs[:, :self.n]
         eigvals = eigvals[:self.n]
-        return eigvecs.T
+        return eigvecs
