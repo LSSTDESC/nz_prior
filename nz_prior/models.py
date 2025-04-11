@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.stats import norm
 
 
 def shift_model(nz, shift):
@@ -29,47 +28,16 @@ def shift_and_width_model(nz, params):
     z, nz = nz
     nz_i = interp1d(z, nz, kind="linear", fill_value="extrapolate")
     mu = np.average(z, weights=nz)
-    pdf = nz_i((z - mu + shift) * width + mu)
+    pdf = nz_i((z - mu + shift) / width + mu)
     norm = np.sum(pdf)
     return [z, pdf / norm]
 
 
-def comb_model(nz, W):
-    ncombs = len(W)
-    z, nz = nz
-    dz = (np.max(z) - np.min(z)) / ncombs
-    zmeans = [(np.min(z) + dz / 2) + i * dz for i in range(ncombs)]
-    combs = {}
-    for i in np.arange(ncombs):
-        combs[i] = norm(zmeans[i], dz / 2)
-    nz_pred = np.zeros(len(z))
-    for i in np.arange(ncombs):
-        nz_pred += (W[i] / ncombs) * combs[i].pdf(z)
-    return [z, nz_pred / np.sum(nz_pred)]
-
-
-def pca_model(nz, W, eigvecs):
-    z, nz = nz
-    new_nz = nz + np.dot(eigvecs.T, W)
-    return [z, new_nz]
-
-
-def gp_model(nq, nz_mean, W):
-    z, nz_mean = nz_mean
-    new_nz = nz_mean + np.dot(W, nq)
-    return [z, new_nz]
-
-
-def linear_model(nz_mean, W):
-    _, n = W.shape
-    alpha = np.random.normal(size=n)
+def linear_model(nz_mean, W, alpha):
+    """
+    Linear model for the n(z) distribution.
+    This is done by applying the linear transformation
+    nz_mean + W * alpha where W is a matrix of weights
+    and alpha is a vector of coefficients.
+    """
     return nz_mean + np.dot(W, alpha)
-
-
-def fourier_model(nz, W):
-    z, nz = nz
-    n = len(W)
-    WW = np.zeros(len(z), dtype=complex)
-    WW[:n] = W
-    new_nz = np.fft.ifft(WW)
-    return [z, nz + new_nz]
