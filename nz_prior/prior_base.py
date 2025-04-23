@@ -55,7 +55,6 @@ class PriorBase:
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
-        self.prior = self.get_prior()
 
     def get_prior(self):
         """
