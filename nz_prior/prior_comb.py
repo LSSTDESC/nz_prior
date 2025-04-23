@@ -19,7 +19,8 @@ class PriorComb(PriorLinear):
         dz = (zmax - zmin) / self.n
         zmeans = [(zmin + dz / 2) + i * dz for i in range(self.n)]
         combs = [norm(zmeans[i], dz / 2) for i in np.arange(self.n)]
-        return np.array(combs)
+        combs = np.array([comb.pdf(self.z) for comb in combs])
+        return combs
 
     def _get_weights(self):
         Ws = []
