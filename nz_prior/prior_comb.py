@@ -1,11 +1,9 @@
 import numpy as np
-from numpy.linalg import eig, cholesky
 from scipy.stats import norm
-from .prior_base import PriorBase
-from .utils import make_cov_posdef
+from .prior_linear import PriorLinear
 
 
-class PriorComb(PriorBase):
+class PriorComb(PriorLinear):
     """
     Prior for the comb model.
     """

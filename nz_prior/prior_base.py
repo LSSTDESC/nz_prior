@@ -65,13 +65,29 @@ class PriorBase:
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
 
+    def get_params(self):
+        """
+        Returns the parameters of the model.
+        """
+        if self.params is None:
+            self.params = self._get_params()
+        return self.params
+
+    def get_params_names(self):
+        """
+        Returns the names of the parameters of the model.
+        """
+        if self.params_names is None:
+            self.params_names = self._get_params_names()
+        return self.params_names
+
     def _get_prior(self):
         raise NotImplementedError
 
-    def get_params(self):
+    def _get_params(self):
         raise NotImplementedError
 
-    def get_params_names(self):
+    def _get_params_names(self):
         raise NotImplementedError
 
     def sample_prior(self):
@@ -96,8 +112,8 @@ class PriorBase:
         add_prior=True,
         **kwargs,
     ):
-        params = self.params
-        names = self.params_names
+        params = self.get_params()
+        names = self.get_params_names()
         if labels is None:
             labels = names
         shape = params.shape
