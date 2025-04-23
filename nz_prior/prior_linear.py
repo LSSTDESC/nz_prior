@@ -12,24 +12,28 @@ class PriorLinear(PriorBase):
     def __init__(self, ens, n=5, zgrid=None):
         self.n = n
         super().__init__(ens, zgrid=zgrid)
+        self.funcs = None
+        self.Ws = None
 
-    def _compute_prior_samples(self):
-        self.funcs = self._find_funcs()
-        self.Ws = self._find_weights()
+    def get_funcs(self):
+        if self.funcs is None:
+            self.funcs = self._get_funcs()
+        return self.funcs
 
-    def _find_funcs(self):
+    def get_weights(self):
+        if self.Ws is None:
+            self.Ws = self._get_weights()
+        return self.Ws
+
+    def _get_funcs(self):
         raise NotImplementedError
 
-    def _find_weights(self):
-        Ws = []
-        for nz in self.nzs:
-            dnz = nz - self.nz_mean
-            W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.n)]
-            Ws.append(W)
-        return np.array(Ws)
+    def _get_weights(self):
+        raise NotImplementedError
 
     def _get_prior(self):
-        self._compute_prior_samples()
+        self.get_funcs()
+        self.get_weights()
         mean = np.mean(self.Ws, axis=0)
         cov = np.cov(self.Ws.T)
         cov = make_cov_posdef(cov)
@@ -38,8 +42,8 @@ class PriorLinear(PriorBase):
         self.prior_cov = cov
         self.prior_chol = chol
 
-    def get_params(self):
+    def _get_params(self):
         return self.Ws.T
 
-    def get_params_names(self):
+    def _get_params_names(self):
         return ["W_{}".format(i) for i in range(len(self.Ws.T))]

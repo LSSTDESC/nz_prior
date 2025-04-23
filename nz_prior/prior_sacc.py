@@ -43,6 +43,8 @@ class PriorSacc(PriorBase):
         return model_objs
 
     def _get_prior(self):
+        self.get_params()
+        self.get_params_names()
         self.prior_mean = np.array(
             [np.mean(param_sets, axis=1) for param_sets in self.params]
         ).flatten()

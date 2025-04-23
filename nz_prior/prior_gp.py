@@ -1,17 +1,16 @@
 import numpy as np
-from numpy.linalg import cholesky
-from .prior_base import PriorBase
-from .utils import make_cov_posdef
+from .prior_linear import PriorLinear
 
 
-class PriorGP(PriorBase):
+class PriorGP(PriorLinear):
     """
     Prior for the moments model.
     """
 
-    def __init__(self, ens, n=None, zgrid=None):
-        self.n = n
-        super().__init__(ens, zgrid=zgrid)
+    def __init__(self, ens, n=5, zgrid=None):
+        super().__init__(ens, n=n, zgrid=zgrid)
+        self.Ws = self._get_weights()
+        self.funcs = self._get_funcs()
 
     def _find_q(self):
         z_edges = self.ens.metadata()["bins"][0]
@@ -20,16 +19,12 @@ class PriorGP(PriorBase):
         q = 0.5 * (q_edges[1:] + q_edges[:-1])
         return q
 
-    def _compute_prior_samples(self):
-        self.Ws = self._find_weights()
-        self.funcs = self._find_funcs()
-
-    def _find_weights(self):
+    def _get_weights(self):
         self.q = self._find_q()
         Ws = [np.interp(self.q, self.z, nz) for nz in self.nzs]
         return np.array(Ws)
 
-    def _find_funcs(self):
+    def _get_funcs(self):
         n1, m1 = self.Ws.shape
         n2, m2 = self.nzs.shape
         nzqs = np.zeros((n1, m2 + m1))
@@ -43,19 +38,3 @@ class PriorGP(PriorBase):
         inv_cov_qq = np.linalg.pinv(cov_qq)
         wiener = np.dot(cov_zq, inv_cov_qq)
         return wiener
-
-    def _get_prior(self):
-        self._compute_prior_samples()
-        mean = np.mean(self.Ws, axis=0)
-        cov = np.cov(self.Ws.T)
-        cov = make_cov_posdef(cov)
-        chol = cholesky(cov)
-        self.prior_mean = mean
-        self.prior_cov = cov
-        self.prior_chol = chol
-
-    def get_params(self):
-        return self.Ws.T
-
-    def get_params_names(self):
-        return ["gp_{}".format(i) for i in range(len(self.Ws.T))]
