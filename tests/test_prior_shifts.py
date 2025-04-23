@@ -32,10 +32,8 @@ def test_sample_prior():
 
 
 def test_model():
-    model = nzp.shift_model
+    model = nzp.shift_and_width_model
     prior = make_prior()
     shift = prior.sample_prior()["delta_z"]
-    input = np.array([prior.z, prior.nz_mean])
-    output = model(input, shift)
-    assert (prior.z == output[0]).all()
-    assert len(output[1]) == len(prior.nz_mean)
+    output = model(prior.z, prior.nz_mean, shift, 1)
+    assert len(output) == len(prior.nz_mean)

@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.interpolate import interp1d
 from numpy.linalg import cholesky
 from .prior_base import PriorBase
 
@@ -24,12 +23,7 @@ class PriorShiftsWidths(PriorBase):
     """
 
     def __init__(self, ens, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self._find_prior()
-        self.params_names = self._get_params_names()
-        self.params = self._get_params()
-
-    def _find_prior(self):
+        super().__init__(ens, zgrid=zgrid)
         self.shifts = self._find_shifts()
         self.widths = self._find_widths()
 

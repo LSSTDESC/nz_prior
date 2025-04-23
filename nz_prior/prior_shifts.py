@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.interpolate import interp1d
 from numpy.linalg import cholesky
 from .prior_base import PriorBase
 
@@ -19,13 +18,9 @@ class PriorShifts(PriorBase):
     """
 
     def __init__(self, ens, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self._find_prior()
-        self.params_names = self._get_params_names()
-        self.params = self._get_params()
-
-    def _find_prior(self):
+        super().__init__(ens, zgrid=zgrid)
         self.shifts = self._find_shifts()
+        self.params = self._get_params()
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
@@ -35,9 +30,8 @@ class PriorShifts(PriorBase):
         return shifts
 
     def _get_prior(self):
-        shifts = self.shifts
-        mean = np.array([np.mean(shifts)])
-        cov = np.array([[np.std(shifts) ** 2]])
+        mean = np.array([np.mean(self.shifts)])
+        cov = np.array([[np.std(self.shifts) ** 2]])
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov

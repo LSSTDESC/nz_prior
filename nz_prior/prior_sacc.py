@@ -7,8 +7,7 @@ from .prior_shifts_widths import PriorShiftsWidths
 from .prior_comb import PriorComb
 from .prior_gp import PriorGP
 from .prior_pca import PriorPCA
-from .prior_fourier import PriorFourier
-from .utils import make_cov_posdef, is_pos_def
+from .utils import make_cov_posdef
 
 
 class PriorSacc(PriorBase):
@@ -23,14 +22,12 @@ class PriorSacc(PriorBase):
             self.model = PriorComb
         if model == "PCA":
             self.model = PriorPCA
-        if model == "Fourier":
-            self.model = PriorFourier
 
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
         self.model_objs = self._make_model_objects(**kwargs)
-        self.params = self._find_params()
-        self.params_names = self._get_params_names()
+        self.params = None
+        self.params_names = None
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
@@ -45,19 +42,9 @@ class PriorSacc(PriorBase):
             model_objs[tracer_name] = model_obj
         return model_objs
 
-    def _find_params(self):
-        params = []
-        for tracer_name in list(self.tracers.keys()):
-            model_obj = self.model_objs[tracer_name]
-            params_sets = model_obj._get_params()
-            params.append(params_sets)
-        try:
-            np.array(params)
-        except:
-            raise ValueError("Each QP ensemble has different number of realizations")
-        return np.array(params)
-
     def _get_prior(self):
+        self.get_params()
+        self.get_params_names()
         self.prior_mean = np.array(
             [np.mean(param_sets, axis=1) for param_sets in self.params]
         ).flatten()
@@ -99,4 +86,13 @@ class PriorSacc(PriorBase):
         return np.array(params_names)
 
     def _get_params(self):
-        return self.params
+        params = []
+        for tracer_name in list(self.tracers.keys()):
+            model_obj = self.model_objs[tracer_name]
+            params_sets = model_obj._get_params()
+            params.append(params_sets)
+        try:
+            np.array(params)
+        except:
+            raise ValueError("Each QP ensemble has different number of realizations")
+        return np.array(params)

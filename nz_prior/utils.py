@@ -2,6 +2,12 @@ import numpy as np
 from numpy.linalg import eig, cholesky
 
 
+def normalize(nzs):
+    norms = np.sum(nzs, axis=1)
+    nzs = nzs / norms[:, None]
+    return nzs
+
+
 def make_cov_posdef(cov):
     if not is_pos_def(cov):
         print("Warning: Covariance matrix is not positive definite")

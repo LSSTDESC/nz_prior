@@ -15,7 +15,7 @@ def make_qp_ens(file):
 def make_prior(n=10):
     file = np.load("tests/dummy.npz")
     ens = make_qp_ens(file)
-    return nzp.PriorPCA(ens, npca=n)
+    return nzp.PriorPCA(ens, n=n)
 
 
 def test_prior():
