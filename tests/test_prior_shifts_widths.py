@@ -37,5 +37,4 @@ def test_model():
     shift = prior_sample["delta_z"]
     width = prior_sample["width_z"]
     output = model(prior.z, prior.nz_mean, shift, width)
-    assert (prior.z == output[0]).all()
-    assert len(output[1]) == len(prior.nz_mean)
+    assert len(output) == len(prior.nz_mean)
