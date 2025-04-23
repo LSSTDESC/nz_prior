@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.stats import norm
-from numpy.linalg import eig
 from .prior_linear import PriorLinear
 
 

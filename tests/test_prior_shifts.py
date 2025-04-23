@@ -35,5 +35,5 @@ def test_model():
     model = nzp.shift_and_width_model
     prior = make_prior()
     shift = prior.sample_prior()["delta_z"]
-    output = model(prior.z, prior.nz_mean, shift, 0)
+    output = model(prior.z, prior.nz_mean, shift, 1)
     assert len(output) == len(prior.nz_mean)
