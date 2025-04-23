@@ -33,7 +33,7 @@ A couple of running options are important to note:
     - "Shifts":  the n(z)'s are shifted by a constant amount.
     - "ShiftsWidths": the n(z)'s are shifted by a constant amount and broadened by a constant width.
     - "PCA": the n(z)'s are represented as a linear combination of the principal components.
-    - "Fourier": the n(z)'s are represented as a linear combination of Fourier modes.
+    - "GP": the n(z)'s are represented as a Gaussian process.
     - "Comb": the n(z)'s are represented as a linear combination of evenly spaced Gaussians.
 - compute_crosscorrs: whether to compute the cross-correlations between the n(z)'s or not.
     - "None": do not compute the cross-correlations.
