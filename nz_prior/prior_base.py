@@ -50,6 +50,8 @@ class PriorBase:
         self.nzs = normalize(nzs)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nz_cov = np.cov(self.nzs, rowvar=False)
+        self.params = None
+        self.params_names = None
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
@@ -63,6 +65,9 @@ class PriorBase:
         if (self.prior_mean is None) | (self.prior_cov is None):
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
+
+    def _get_prior(self):
+        raise NotImplementedError
 
     def get_params(self):
         raise NotImplementedError
@@ -83,45 +88,6 @@ class PriorBase:
         param_names = self.get_params_names()
         samples = {param_names[i]: values[i] for i in range(len(values))}
         return samples
-
-    def save_prior(self, path="./"):
-        """
-        Saves the prior distribution to a file.
-        """
-        prior_mean, prior_cov = self.get_prior()
-        np.save(path + "prior_mean.npy", prior_mean)
-        np.save(path + "prior_cov.npy", prior_cov)
-
-    def test_prior(self):
-        """
-        Tests the distribution of parameters is
-        actually Gaussian.
-        """
-        params = self.params
-        shape = params.shape
-        if len(shape) == 3:
-            # For the sacc prior
-            n, m, k = shape
-            params = np.reshape(params, (n * m, k))
-        params = np.real(params)
-
-        prior_mean, prior_cov, _ = self.get_prior()
-        prior_std = np.sqrt(np.diag(prior_cov))
-
-        p_values = []
-        for i, param in enumerate(params):
-            result = kstest(param, "norm", args=(prior_mean[i], prior_std[i]))
-            p_value = result.pvalue
-            param_name = self.params_names[i]
-            if result.pvalue < 0.05:
-                print(
-                    "Warning: p-value for {} being Gaussianly distributed is {}".format(
-                        param_name, p_value
-                    )
-                )
-
-            p_values.append(p_value)
-        return p_values
 
     def plot_prior(
         self,
