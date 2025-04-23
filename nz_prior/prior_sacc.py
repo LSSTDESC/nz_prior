@@ -7,8 +7,7 @@ from .prior_shifts_widths import PriorShiftsWidths
 from .prior_comb import PriorComb
 from .prior_gp import PriorGP
 from .prior_pca import PriorPCA
-from .prior_fourier import PriorFourier
-from .utils import make_cov_posdef, is_pos_def
+from .utils import make_cov_posdef
 
 
 class PriorSacc(PriorBase):
@@ -23,8 +22,6 @@ class PriorSacc(PriorBase):
             self.model = PriorComb
         if model == "PCA":
             self.model = PriorPCA
-        if model == "Fourier":
-            self.model = PriorFourier
 
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers

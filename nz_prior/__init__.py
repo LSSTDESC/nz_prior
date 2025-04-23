@@ -36,4 +36,4 @@ from .prior_shifts_widths import PriorShiftsWidths
 from .prior_gp import PriorGP
 from .prior_comb import PriorComb
 from .prior_pca import PriorPCA
-from .models import shift_model, shift_and_width_model, linear_model
+from .models import shift_and_width_model, linear_model
