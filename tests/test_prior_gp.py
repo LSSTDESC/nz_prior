@@ -25,6 +25,7 @@ def test_prior():
 
 
 def test_sample_prior():
-    prior = make_prior()
+    n = 10
+    prior = make_prior(n=n)
     prior_sample = prior.sample_prior()
-    assert len(list(prior_sample.values())) == len(prior.nq_mean)
+    assert len(list(prior_sample.values())) == n
