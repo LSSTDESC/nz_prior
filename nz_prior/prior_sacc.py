@@ -55,12 +55,20 @@ class PriorSacc(PriorBase):
                     params.append(param_set)
             params = np.array(params)
             cov = np.cov(params)
+            cov = make_cov_posdef(cov)
+            chol = cholesky(cov)
         elif self.compute_crosscorrs == "BinWise":
             covs = []
-            for p in self.params:
-                covs.append(np.cov(p))
+            chols = []
+            for tracer_name in list(self.tracers.keys()):
+                model_obj = self.model_objs[tracer_name]
+                _, cov, chol = model_obj.get_prior()
+                covs.append(cov)
+                chols.append(chol)
             covs = np.array(covs)
+            chols = np.array(chols)
             cov = block_diag(*covs)
+            chol = block_diag(*chols)
         elif self.compute_crosscorrs == "None":
             stds = []
             for param_sets in self.params:
@@ -68,12 +76,13 @@ class PriorSacc(PriorBase):
                     stds.append(np.std(param_set))
             stds = np.array(stds)
             cov = np.diag(stds**2)
+            chol = np.diag(stds)
         else:
             raise ValueError(
                 "Invalid compute_crosscorrs=={}".format(self.compute_crosscorrs)
             )
-        self.prior_cov = make_cov_posdef(cov)
-        self.prior_chol = cholesky(self.prior_cov)
+        self.prior_cov = cov
+        self.prior_chol = chol
 
     def _get_params_names(self):
         params_names = []
