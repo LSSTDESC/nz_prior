@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import cholesky
 from .prior_base import PriorBase
+from .utils import make_cov_posdef
 
 
 class PriorShiftsWidths(PriorBase):
@@ -46,12 +47,10 @@ class PriorShiftsWidths(PriorBase):
         return widths
 
     def _get_prior(self):
-        m_shift = np.mean(self.shifts)
-        m_width = np.mean(self.widths)
-        s_shift = np.std(self.shifts)
-        s_width = np.std(self.widths)
-        mean = np.array([m_shift, m_width])
-        cov = np.array([[s_shift**2, 0], [0, s_width**2]])
+        params = self._get_params().T
+        mean = np.mean(params, axis=0)
+        cov = np.cov(params, rowvar=False)
+        cov = make_cov_posdef(cov)
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov
