@@ -6,7 +6,8 @@
 
 A DESC Package to turn an ensemble of redshift distributions into a prior for photo-z uncertainty.
 
-![image](https://github.com/user-attachments/assets/e92ba099-7200-4396-8838-4401b25c4739)
+![image](https://github.com/user-attachments/assets/89d1b391-5365-4661-b0f5-1b66d7b25536)
+
 
 
 ## Usage
