@@ -24,6 +24,7 @@ class PriorSacc(PriorBase):
             self.model = PriorPCA
 
         self.compute_crosscorrs = compute_crosscorrs
+        self.sacc_file = sacc_file
         self.tracers = sacc_file.tracers
         self.model_objs = self._make_model_objects(**kwargs)
         self.params = None
@@ -105,3 +106,18 @@ class PriorSacc(PriorBase):
         except:
             raise ValueError("Each QP ensemble has different number of realizations")
         return np.array(params)
+
+    def update_sacc(self):
+        s_qp = self.sacc_file
+        priors = self.model_objs
+        s = s_qp.copy() 
+        tracers = s_qp.tracers
+        if tracers.keys() != priors.keys():
+            raise ValueError("Tracers in sacc file and priors do not match")
+        for key in tracers.keys():
+            prior_obj = priors[key]
+            z, nz = prior_obj.z, prior_obj.nz_mean
+            mean, _, chol = prior_obj.get_prior()
+            p = {'prior_mean': mean, 'prior_chol': chol}
+            s.add_tracer('NZ', key, z, nz, extra_columns=p)
+        return s
