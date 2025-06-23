@@ -48,6 +48,8 @@ class PriorBase:
         else:
             self.nz_fid = nz_fid
         self.nz_cov = np.cov(self.nzs, rowvar=False)
+        self.params = None
+        self.params_names = None
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
@@ -63,7 +65,7 @@ class PriorBase:
 
     def _get_prior(self):
         raise NotImplementedError
-    
+
     def get_params(self):
         """
         Returns the parameters of the model.
@@ -72,6 +74,9 @@ class PriorBase:
             self.params = self._get_params()
         return self.params
 
+    def _get_params(self):
+        raise NotImplementedError
+
     def get_params_names(self):
         """
         Returns the names of the parameters of the model.
@@ -79,6 +84,9 @@ class PriorBase:
         if self.params_names is None:
             self.params_names = self._get_params_names()
         return self.params_names
+
+    def _get_params_names(self):
+        raise NotImplementedError
 
     def sample_prior(self):
         """
@@ -91,7 +99,7 @@ class PriorBase:
         if type(alpha) is np.float64:
             alpha = np.array([alpha])
         values = prior_mean + prior_chol @ alpha
-        param_names = self._get_params_names()
+        param_names = self.get_params_names()
         samples = {param_names[i]: values[i] for i in range(len(values))}
         return samples
 
