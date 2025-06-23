@@ -44,7 +44,8 @@ class PriorSacc(PriorBase):
         for tracer_name in list(self.tracers.keys()):
             tracer = self.tracers[tracer_name]
             ens = tracer.ensemble
-            model_obj = self.model(ens, **kwargs)
+            nz_fid = tracer.nz_fid
+            model_obj = self.model(ens, nz_fid=nz_fid, **kwargs)
             model_objs[tracer_name] = model_obj
         return model_objs
 
