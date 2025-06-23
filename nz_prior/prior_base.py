@@ -1,9 +1,12 @@
 import numpy as np
+from getdist import plots, MCSamples
 from scipy.stats import multivariate_normal as mvn
+from scipy.stats import kstest
+from .utils import normalize
 import qp
 
 
-class PriorBase():
+class PriorBase:
     """
     Base class for priors. Projectors are used to project the measured
     photometric distributions by RAIL onto the space of a given generative
@@ -16,6 +19,16 @@ class PriorBase():
     the meadured photometric distributions.
     """
     def __init__(self, ens, nz_fid=None):
+        """
+        Initializes the prior class.
+        Parameters
+        ----------
+        ens : qp.ensemble.Ensemble or list
+            Ensemble of measured photometric distributions.
+        zgrid : array_like, optional
+            Redshift grid to use for the prior. If None, the redshift
+            grid of the ensemble is used.
+        """
         if type(ens) is qp.ensemble.Ensemble:
             z_edges = ens.metadata()['bins'][0]
             z = 0.5 * (z_edges[1:] + z_edges[:-1])
@@ -28,7 +41,7 @@ class PriorBase():
 
         self.z = z
         self.ens = ens
-        self.nzs = self._normalize(nzs)
+        self.nzs = normalize(nzs)
         self.nz_mean = np.mean(self.nzs, axis=0)
         if nz_fid is None:
             self.nz_fid = self.nz_mean
@@ -38,11 +51,6 @@ class PriorBase():
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
-
-    def _normalize(self, nzs):
-        norms = np.sum(nzs, axis=1)
-        nzs = nzs/norms[:, None]
-        return nzs
 
     def get_prior(self):
         """
@@ -55,6 +63,22 @@ class PriorBase():
 
     def _get_prior(self):
         raise NotImplementedError
+    
+    def get_params(self):
+        """
+        Returns the parameters of the model.
+        """
+        if self.params is None:
+            self.params = self._get_params()
+        return self.params
+
+    def get_params_names(self):
+        """
+        Returns the names of the parameters of the model.
+        """
+        if self.params_names is None:
+            self.params_names = self._get_params_names()
+        return self.params_names
 
     def sample_prior(self):
         """
@@ -71,10 +95,68 @@ class PriorBase():
         samples = {param_names[i]: values[i] for i in range(len(values))}
         return samples
 
-    def save_prior(self, path="./"):
-        """
-        Saves the prior distribution to a file.
-        """
-        prior_mean, prior_cov = self.get_prior()
-        np.save(path+"prior_mean.npy", prior_mean)
-        np.save(path+"prior_cov.npy", prior_cov)
+    def plot_prior(
+        self,
+        order=None,
+        labels=None,
+        mode="1D",
+        add_prior=True,
+        **kwargs,
+    ):
+        params = self.get_params()
+        names = self.get_params_names()
+        if labels is None:
+            labels = names
+        shape = params.shape
+        if len(shape) == 3:
+            # For the sacc prior
+            n, m, k = shape
+            params = np.reshape(params, (n * m, k))
+        if order is not None:
+            print("Order: ", order)
+            params = params[order]
+            names = names[order]
+            labels = labels[order]
+        params = params.T
+        params = np.real(params)
+        chain = MCSamples(
+            samples=params,
+            names=names,
+            labels=labels,
+            label="Measured Distribution",
+            settings={
+                "mult_bias_correction_order": 0,
+                "smooth_scale_2D": 0.4,
+                "smooth_scale_1D": 0.3,
+            },
+        )
+        g = plots.getSubplotPlotter(subplot_size=1.5)
+        g.settings.axes_fontsize = 20
+        g.settings.legend_fontsize = 20
+        g.settings.axes_labelsize = 20
+        chains = [chain]
+        if add_prior:
+            samples = []
+            for i in range(2000):
+                sample = self.sample_prior()
+                _sample = np.array([s for s in sample.values()])
+                samples.append(_sample)
+            samples = np.array(samples)
+            if order is not None:
+                samples = samples[:, order]
+            prior_chain = MCSamples(
+                samples=samples,
+                names=names,
+                label="Gaussian Prior",
+                settings={
+                    "mult_bias_correction_order": 0,
+                    "smooth_scale_2D": 0.4,
+                    "smooth_scale_1D": 0.3,
+                },
+            )
+            chains.append(prior_chain)
+        if mode == "2D":
+            g.triangle_plot(chains, filled=True, **kwargs)
+        elif mode == "1D":
+            g.plots_1d(chains, share_y=True, **kwargs)
+        return g

@@ -38,7 +38,7 @@ class PriorSacc(PriorBase):
             print("Making model for ", tracer_name)
             tracer = self.tracers[tracer_name]
             ens = tracer.ensemble
-            nz_fid = tracer.nz_fid
+            nz_fid = tracer.nz
             model_obj = self.model(ens, nz_fid=nz_fid, **kwargs)
             model_objs[tracer_name] = model_obj
         return model_objs
