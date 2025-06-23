@@ -1,35 +1,40 @@
 import numpy as np
-from numpy.linalg import eig, cholesky
-from scipy.stats import multivariate_normal as mvn
-from .prior_base import PriorBase
-from .utils import make_cov_posdef
+from .prior_linear import PriorLinear
 
 
-class PriorGP(PriorBase):
+class PriorGP(PriorLinear):
     """
     Prior for the moments model.
-    The moments model assumes that meausred photometric distribution
-    is Gaussian meaning that it can be fully described by its mean and
-    covariance matrix. Conceptually, this is equavalent to a 
-    Gaussian process regressio for a given p(z). The details can be found 
-    in the paper: 2301.11978
-
-    Some measured photometric distributions will possess non-invertible
-    covariance matrices. If this is the case, PriorMoments will
-    attempt regularize the covariance matrix by adding a small jitter
-    to its eigen-values. If this fails, the covariance matrix will be
-    diagonalized.
     """
-    def __init__(self, ens, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
 
-    def _get_prior(self):
-        self.prior_mean = self.nz_mean
-        self.prior_cov = make_cov_posdef(self.nz_cov)
-        self.prior_chol = cholesky(self.prior_cov)
+    def __init__(self, ens, n=5, zgrid=None):
+        super().__init__(ens, n=n, zgrid=zgrid)
+        self.Ws = self._get_weights()
+        self.funcs = self._get_funcs()
 
-    def _get_params(self):
-        return self.nzs.T
+    def _find_q(self):
+        z_edges = self.ens.metadata()["bins"][0]
+        z = 0.5 * (z_edges[1:] + z_edges[:-1])
+        q_edges = np.linspace(z[0], z[-1], self.n + 1)
+        q = 0.5 * (q_edges[1:] + q_edges[:-1])
+        return q
 
-    def _get_params_names(self):
-        return ['nz_{}'.format(i) for i in range(len(self.nzs.T))]
+    def _get_weights(self):
+        self.q = self._find_q()
+        Ws = [np.interp(self.q, self.z, nz) for nz in self.nzs]
+        return np.array(Ws)
+
+    def _get_funcs(self):
+        n1, m1 = self.Ws.shape
+        n2, m2 = self.nzs.shape
+        nzqs = np.zeros((n1, m2 + m1))
+        nzqs[:, :m2] = self.nzs
+        nzqs[:, m2:] = self.Ws
+        nzq_mean = np.mean(nzqs, axis=0)
+        dnzqs = nzqs - nzq_mean
+        cov_zzqq = np.cov(dnzqs.T)
+        cov_qq = cov_zzqq[len(self.nz_mean) :, len(self.nz_mean) :]
+        cov_zq = cov_zzqq[: len(self.nz_mean), len(self.nz_mean) :]
+        inv_cov_qq = np.linalg.pinv(cov_qq)
+        wiener = np.dot(cov_zq, inv_cov_qq)
+        return wiener

@@ -1,50 +1,35 @@
 import numpy as np
-from numpy.linalg import eig, cholesky
-from scipy.stats import norm
-from .prior_base import PriorBase
-from .utils import make_cov_posdef
+from numpy.linalg import eig
+from .prior_linear import PriorLinear
 
 
-class PriorPCA(PriorBase):
+class PriorPCA(PriorLinear):
     """
     Prior for the PCA model.
     """
-    def __init__(self, ens, npca=5, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self.npca = npca
-        d_nzs = self.nzs - self.nz_mean
-        d_cov = np.cov(d_nzs, rowvar=False)
-        self.eigvals, self.eigvecs = eig(d_cov)
-        self.eigvecs = np.real(self.eigvecs)
-        self.eigvals = np.real(self.eigvals)
-        idx = np.argsort(self.eigvals)[::-1]
-        self.eigvals = self.eigvals[idx]
-        self.eigvecs = self.eigvecs[:, :npca]
-        self.eigvals = self.eigvals[:npca]
-        self.eigvecs = self.eigvecs.T
-        self._find_prior()
 
-    def _find_prior(self):
-        self.Ws = self._find_weights()
+    def __init__(self, ens, n=5, zgrid=None):
+        super().__init__(ens, n=n, zgrid=zgrid)
+        self.funcs = self._get_funcs()
+        self.Ws = self._get_weights()
 
-    def _find_weights(self):
+    def _get_weights(self):
         Ws = []
         for nz in self.nzs:
-            W = [np.dot(nz, self.eigvecs[i]) for i in np.arange(self.npca)]
+            dnz = nz - self.nz_mean
+            W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.n)]
             Ws.append(W)
         return np.array(Ws)
 
-    def _get_prior(self):
-        mean = np.mean(self.Ws, axis=0)
-        cov = np.cov(self.Ws.T)
-        cov = make_cov_posdef(cov)
-        chol = cholesky(cov)
-        self.prior_mean = mean
-        self.prior_cov = cov
-        self.prior_chol = chol
-
-    def _get_params(self):
-        return self.Ws.T
-
-    def _get_params_names(self):
-        return ['W_{}'.format(i) for i in range(len(self.Ws.T))]
+    def _get_funcs(self):
+        d_nzs = self.nzs - self.nz_mean
+        d_cov = np.cov(d_nzs, rowvar=False)
+        eigvals, eigvecs = eig(d_cov)
+        eigvecs = np.real(eigvecs)
+        eigvals = np.real(eigvals)
+        idx = np.argsort(eigvals)[::-1]
+        eigvals = eigvals[idx]
+        eigvecs = eigvecs[:, idx]
+        eigvecs = eigvecs[:, : self.n]
+        eigvals = eigvals[: self.n]
+        return eigvecs

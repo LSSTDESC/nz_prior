@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.interpolate import interp1d
 from numpy.linalg import cholesky
 from .prior_base import PriorBase
 
@@ -17,17 +16,17 @@ class PriorShifts(PriorBase):
     mean 0 and variance equal to the ratio of the standard deviation
     of the standard deviations to the mean of the standard deviations.
     """
-    def __init__(self, ens, zgrid=None):
-        self._prior_base(ens, zgrid=zgrid)
-        self._find_prior()
 
-    def _find_prior(self):
+    def __init__(self, ens, zgrid=None):
+        super().__init__(ens, zgrid=zgrid)
         self.shifts = self._find_shifts()
         self.sys_shift = self._find_sys_shift()
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
-        shifts = [(np.average(self.z, weights=nz)-mu) for nz in self.nzs]
+        shifts = [
+            (np.average(self.z, weights=nz) - mu) for nz in self.nzs
+        ]  # mean of each nz
         return shifts
 
     def _find_sys_shift(self):
@@ -55,4 +54,4 @@ class PriorShifts(PriorBase):
         return np.array([self.sys_shift])
 
     def _get_params_names(self):
-        return np.array(['delta_z'])
+        return np.array(["delta_z"])

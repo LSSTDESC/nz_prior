@@ -6,7 +6,9 @@
 
 A DESC Package to turn an ensemble of redshift distributions into a prior for photo-z uncertainty.
 
-![image](https://github.com/user-attachments/assets/db975890-934e-4db1-aefd-51f6709aac29)
+![image](https://github.com/user-attachments/assets/89d1b391-5365-4661-b0f5-1b66d7b25536)
+
+
 
 ## Usage
 
@@ -32,8 +34,7 @@ A couple of running options are important to note:
     - "Shifts":  the n(z)'s are shifted by a constant amount.
     - "ShiftsWidths": the n(z)'s are shifted by a constant amount and broadened by a constant width.
     - "PCA": the n(z)'s are represented as a linear combination of the principal components.
-    - "Fourier": the n(z)'s are represented as a linear combination of Fourier modes.
-    - "GP": the model assumes that the n(z)'s are a Gaussian Process.
+    - "GP": the n(z)'s are represented as a Gaussian process.
     - "Comb": the n(z)'s are represented as a linear combination of evenly spaced Gaussians.
 - compute_crosscorrs: whether to compute the cross-correlations between the n(z)'s or not.
     - "None": do not compute the cross-correlations.

@@ -23,11 +23,13 @@ class PriorShiftsWidths(PriorBase):
     This is similar to how the shift prior is calibrated in the shift model.
     """
 
+
     def __init__(self, ens, zgrid=None):
         self._prior_base(ens, zgrid=zgrid)
         self._find_prior()
 
-    def _find_prior(self):
+    def __init__(self, ens, zgrid=None):
+        super().__init__(ens, zgrid=zgrid)
         self.shifts = self._find_shifts()
         self.widths = self._find_widths()
         self.sys_shift = self._find_sys_shift()
