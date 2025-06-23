@@ -17,8 +17,8 @@ class PriorShifts(PriorBase):
     of the standard deviations to the mean of the standard deviations.
     """
 
-    def __init__(self, ens, zgrid=None):
-        super().__init__(ens, zgrid=zgrid)
+    def __init__(self, ens, nz_fid=None):
+        super().__init__(ens, nz_fid=nz_fid)
         self.shifts = self._find_shifts()
         self.sys_shift = self._find_sys_shift()
 

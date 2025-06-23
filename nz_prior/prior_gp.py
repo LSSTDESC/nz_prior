@@ -7,9 +7,10 @@ class PriorGP(PriorLinear):
     Prior for the moments model.
     """
 
-    def __init__(self, ens, n=5, zgrid=None):
-        super().__init__(ens, n=n, zgrid=zgrid)
+    def __init__(self, ens, n=5, nz_fid=None):
+        super().__init__(ens, n=n, nz_fid=nz_fid)
         self.Ws = self._get_weights()
+        self.W_sys = self._get_sys_weights()
         self.funcs = self._get_funcs()
 
     def _find_q(self):
@@ -23,6 +24,10 @@ class PriorGP(PriorLinear):
         self.q = self._find_q()
         Ws = [np.interp(self.q, self.z, nz) for nz in self.nzs]
         return np.array(Ws)
+
+    def _get_sys_weights(self):
+        self.q = self._find_q()
+        return np.interp(self.q, self.z, self.nz_fid)
 
     def _get_funcs(self):
         n1, m1 = self.Ws.shape
