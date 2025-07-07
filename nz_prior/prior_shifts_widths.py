@@ -23,10 +23,12 @@ class PriorShiftsWidths(PriorBase):
     This is similar to how the shift prior is calibrated in the shift model.
     """
 
-    def __init__(self, ens, zgrid=None):
-        super().__init__(ens, zgrid=zgrid)
+    def __init__(self, ens, nz_fid=None):
+        super().__init__(ens, nz_fid=nz_fid)
         self.shifts = self._find_shifts()
         self.widths = self._find_widths()
+        self.sys_shift = self._find_sys_shift()
+        self.sys_width = self._find_sys_width()
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
@@ -35,21 +37,43 @@ class PriorShiftsWidths(PriorBase):
         ]  # mean of each nz
         return shifts
 
+    def _find_sys_shift(self):
+        mu = np.average(self.z, weights=self.nz_mean)
+        _mu = np.average(self.z, weights=self.nz_fid)
+        sys_shift = _mu - mu
+        return sys_shift
+
     def _find_widths(self):
         stds = []
+        mean_mu = np.average(self.z, weights=self.nz_mean)
+        mean_std = np.sqrt(np.average((self.z - mean_mu) ** 2, weights=self.nz_mean))
         for nz in self.nzs:
             mu = np.average(self.z, weights=nz)
             std = np.sqrt(np.average((self.z - mu) ** 2, weights=nz))
             stds.append(std)
         stds = np.array(stds)
-        std_mean = np.mean(stds)  # mean of the stds
-        widths = stds / std_mean
+        widths = stds / mean_std
         return widths
+
+    def _find_sys_width(self):
+        mean_mu = np.average(self.z, weights=self.nz_mean)
+        mean_std = np.sqrt(np.average((self.z - mean_mu) ** 2, weights=self.nz_mean))
+        fid_mu = np.average(self.z, weights=self.nz_fid)
+        fid_std = np.sqrt(np.average((self.z - fid_mu) ** 2, weights=self.nz_fid))
+        sys_width = fid_std / mean_std
+        return sys_width
 
     def _get_prior(self):
         params = self._get_params().T
+        sys_params = self._get_sys_params()
+        print("sys params", sys_params)
         mean = np.mean(params, axis=0)
+        delta = mean - sys_params
+        print("mean", mean)
+        mean = 0.5 * (mean + sys_params)
+        print("mean after sys", mean)
         cov = np.cov(params, rowvar=False)
+        cov += np.diag(delta**2)
         cov = make_cov_posdef(cov)
         chol = cholesky(cov)
         self.prior_mean = mean
@@ -58,6 +82,9 @@ class PriorShiftsWidths(PriorBase):
 
     def _get_params(self):
         return np.array([self.shifts, self.widths])
+
+    def _get_sys_params(self):
+        return np.array([self.sys_shift, self.sys_width])
 
     def _get_params_names(self):
         return ["delta_z", "width_z"]

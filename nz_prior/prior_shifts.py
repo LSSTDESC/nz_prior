@@ -17,10 +17,10 @@ class PriorShifts(PriorBase):
     of the standard deviations to the mean of the standard deviations.
     """
 
-    def __init__(self, ens, zgrid=None):
-        super().__init__(ens, zgrid=zgrid)
+    def __init__(self, ens, nz_fid=None):
+        super().__init__(ens, nz_fid=nz_fid)
         self.shifts = self._find_shifts()
-        self.params = self._get_params()
+        self.sys_shift = self._find_sys_shift()
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
@@ -29,9 +29,19 @@ class PriorShifts(PriorBase):
         ]  # mean of each nz
         return shifts
 
+    def _find_sys_shift(self):
+        mu = np.average(self.z, weights=self.nz_mean)
+        _mu = np.average(self.z, weights=self.nz_fid)
+        sys_shift = _mu - mu
+        return sys_shift
+
     def _get_prior(self):
-        mean = np.array([np.mean(self.shifts)])
-        cov = np.array([[np.std(self.shifts) ** 2]])
+        shifts = self.shifts
+        sys_shift = self.sys_shift
+        mean = np.array([np.mean(shifts)])
+        mean = 0.5 * (mean + sys_shift)
+        s_shifts = np.std(shifts)
+        cov = np.array([[s_shifts**2+sys_shift**2]])
         chol = cholesky(cov)
         self.prior_mean = mean
         self.prior_cov = cov
@@ -39,6 +49,9 @@ class PriorShifts(PriorBase):
 
     def _get_params(self):
         return np.array([self.shifts])
+
+    def _get_sys_params(self):
+        return np.array([self.sys_shift])
 
     def _get_params_names(self):
         return np.array(["delta_z"])

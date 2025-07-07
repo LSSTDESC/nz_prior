@@ -8,10 +8,11 @@ class PriorComb(PriorLinear):
     Prior for the comb model.
     """
 
-    def __init__(self, ens, n=5, zgrid=None):
-        super().__init__(ens, n=n, zgrid=zgrid)
+    def __init__(self, ens, n=5, nz_fid=None):
+        super().__init__(ens, n=n, nz_fid=nz_fid)
         self.funcs = self._get_funcs()
         self.Ws = self._get_weights()
+        self.W_sys = self._get_sys_weights()
 
     def _get_funcs(self):
         zmax = np.max(self.z)
@@ -29,3 +30,8 @@ class PriorComb(PriorLinear):
             W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.n)]
             Ws.append(W)
         return np.array(Ws)
+
+    def _get_sys_weights(self):
+        dnz = self.nz_fid - self.nz_mean
+        W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.n)]
+        return np.array(W)
