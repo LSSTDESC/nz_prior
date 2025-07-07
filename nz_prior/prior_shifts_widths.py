@@ -66,10 +66,14 @@ class PriorShiftsWidths(PriorBase):
     def _get_prior(self):
         params = self._get_params().T
         sys_params = self._get_sys_params()
+        print("sys params", sys_params)
         mean = np.mean(params, axis=0)
+        delta = mean - sys_params
+        print("mean", mean)
         mean = 0.5 * (mean + sys_params)
+        print("mean after sys", mean)
         cov = np.cov(params, rowvar=False)
-        cov += np.diag(sys_params**2)
+        cov += np.diag(delta**2)
         cov = make_cov_posdef(cov)
         chol = cholesky(cov)
         self.prior_mean = mean

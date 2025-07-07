@@ -45,9 +45,10 @@ class PriorLinear(PriorBase):
         self.get_weights()
         W_sys = self.get_sys_weights()
         mean = np.mean(self.Ws, axis=0)
+        delta = mean - W_sys
         mean = 0.5 * (mean + W_sys)
         cov = np.cov(self.Ws.T)
-        cov += np.diag(W_sys**2)
+        cov += np.diag(delta**2)
         cov = make_cov_posdef(cov)
         chol = cholesky(cov)
         self.prior_mean = mean

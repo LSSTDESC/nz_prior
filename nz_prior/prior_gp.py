@@ -9,6 +9,7 @@ class PriorGP(PriorLinear):
 
     def __init__(self, ens, n=5, nz_fid=None):
         super().__init__(ens, n=n, nz_fid=nz_fid)
+        self.q = self._find_q()
         self.Ws = self._get_weights()
         self.W_sys = self._get_sys_weights()
         self.funcs = self._get_funcs()
@@ -21,12 +22,10 @@ class PriorGP(PriorLinear):
         return q
 
     def _get_weights(self):
-        self.q = self._find_q()
         Ws = [np.interp(self.q, self.z, nz) for nz in self.nzs]
         return np.array(Ws)
 
     def _get_sys_weights(self):
-        self.q = self._find_q()
         return np.interp(self.q, self.z, self.nz_fid)
 
     def _get_funcs(self):
