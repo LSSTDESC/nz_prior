@@ -36,6 +36,7 @@ class PriorShifts(PriorBase):
         self.prior_mean = mean
         self.prior_cov = cov
         self.prior_chol = chol
+        self.prior_transform = chol
 
     def _get_params(self):
         return np.array([self.shifts])
