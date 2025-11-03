@@ -11,6 +11,7 @@ class PriorGP(PriorLinear):
         super().__init__(ens, n=n, zgrid=zgrid)
         self.Ws = self._get_weights()
         self.funcs = self._get_funcs()
+        self.params = self._get_params()
 
     def _find_q(self):
         z_edges = self.ens.metadata()["bins"][0]

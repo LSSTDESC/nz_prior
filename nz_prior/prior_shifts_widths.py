@@ -27,6 +27,7 @@ class PriorShiftsWidths(PriorBase):
         super().__init__(ens, zgrid=zgrid)
         self.shifts = self._find_shifts()
         self.widths = self._find_widths()
+        self.params = self._get_params()
 
     def _find_shifts(self):
         mu = np.average(self.z, weights=self.nz_mean)
