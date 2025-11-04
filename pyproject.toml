@@ -41,9 +41,6 @@ write_to = "nz_prior/_version.py"
 testpaths = [
     "tests",
 ]
-addopts = [
-    "--cov-report=html"
-]
 
 [tool.pylint]
 disable = [

@@ -14,7 +14,7 @@ class PriorGP(PriorLinear):
         self.params = self._get_params()
 
     def _find_q(self):
-        z_edges = self.ens.metadata()["bins"][0]
+        z_edges = self.ens.metadata["bins"]
         z = 0.5 * (z_edges[1:] + z_edges[:-1])
         q_edges = np.linspace(z[0], z[-1], self.n + 1)
         q = 0.5 * (q_edges[1:] + q_edges[:-1])

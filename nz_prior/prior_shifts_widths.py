@@ -43,7 +43,10 @@ class PriorShiftsWidths(PriorBase):
             std = np.sqrt(np.average((self.z - mu) ** 2, weights=nz))
             stds.append(std)
         stds = np.array(stds)
-        std_mean = np.mean(stds)  # mean of the stds
+        mu_mean = np.average(self.z, weights=self.nz_mean)
+        std_mean = np.sqrt(
+            np.average((self.z - mu_mean) ** 2, weights=self.nz_mean)
+        )
         widths = stds / std_mean
         return widths
 

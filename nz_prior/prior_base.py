@@ -30,10 +30,10 @@ class PriorBase:
             Redshift grid to use for the prior. If None, the redshift
             grid of the ensemble is used.
         """
-        if type(ens) is qp.ensemble.Ensemble:
-            z_edges = ens.metadata()["bins"][0]
+        if type(ens) is qp.Ensemble:
+            z_edges = ens.metadata["bins"]
             z = 0.5 * (z_edges[1:] + z_edges[:-1])
-            nzs = ens.objdata()["pdfs"]
+            nzs = ens.objdata["pdfs"]
         elif type(ens) is list:
             z = ens[0]
             nzs = ens[1]

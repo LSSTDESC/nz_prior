@@ -33,8 +33,20 @@ def test_sample_prior():
 def test_model():
     model = nzp.shift_and_width_model
     prior = make_prior()
-    prior_sample = prior.sample_prior()
-    shift = prior_sample["delta_z"]
-    width = prior_sample["width_z"]
-    output = model(prior.z, prior.nz_mean, shift, width)
-    assert len(output) == len(prior.nz_mean)
+    shift = 0.1 #rior_sample["delta_z"]
+    width = 1.1 #prior_sample["width_z"]
+    mu = np.average(prior.z, weights=prior.nz_mean)
+    std = np.sqrt(np.average((prior.z - mu) ** 2, weights=prior.nz_mean))
+
+    new_z = prior.z + mu
+    new_nz = model(prior.z, prior.nz_mean, shift, 1)
+    _shift = np.average(new_z, weights=prior.nz_mean) - mu
+    assert np.isclose(_shift, shift, atol=1e-2)
+
+    new_nz = model(prior.z, prior.nz_mean, shift, width)
+    new_std = np.sqrt(np.average((prior.z - mu) ** 2, weights=new_nz))
+    _width = new_std / std
+    print(_shift, shift)
+    print(_width, width)
+    assert np.isclose(_shift, shift, atol=1e-2)
+    assert np.isclose(_width, width, atol=1e-2)
