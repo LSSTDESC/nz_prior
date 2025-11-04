@@ -16,7 +16,12 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-dependencies = ['numpy', 'scipy', 'qp-prob', 'sacc', 'getdist']
+dependencies = [
+'numpy',
+'scipy',
+'qp-prob >= 1.0', 
+'sacc >= 2.0',
+'getdist']
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
@@ -40,9 +45,6 @@ write_to = "nz_prior/_version.py"
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
-]
-addopts = [
-    "--cov-report=html"
 ]
 
 [tool.pylint]
