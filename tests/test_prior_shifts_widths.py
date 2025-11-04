@@ -31,22 +31,25 @@ def test_sample_prior():
 
 
 def test_model():
+    shift = 0.1
+    width = 1.1
     model = nzp.shift_and_width_model
-    prior = make_prior()
-    shift = 0.1 #rior_sample["delta_z"]
-    width = 1.1 #prior_sample["width_z"]
-    mu = np.average(prior.z, weights=prior.nz_mean)
-    std = np.sqrt(np.average((prior.z - mu) ** 2, weights=prior.nz_mean))
+    mu = 0.5
+    std = 0.1
+    z = np.linspace(mu - 5*std, mu + 5*std, 100)
+    nz = np.exp(-0.5 * ((z - mu) / std) ** 2)
+    nz /= np.sum(nz)
 
-    new_z = prior.z + mu
-    new_nz = model(prior.z, prior.nz_mean, shift, 1)
-    _shift = np.average(new_z, weights=prior.nz_mean) - mu
-    assert np.isclose(_shift, shift, atol=1e-2)
+    new_nz = model(z, nz, shift, 1)
+    _mu = np.average(z, weights=new_nz)
+    _shift = _mu - mu
+    print(_mu)
+    assert np.isclose(_shift, shift, atol=1e-3)
 
-    new_nz = model(prior.z, prior.nz_mean, shift, width)
-    new_std = np.sqrt(np.average((prior.z - mu) ** 2, weights=new_nz))
-    _width = new_std / std
-    print(_shift, shift)
-    print(_width, width)
-    assert np.isclose(_shift, shift, atol=1e-2)
-    assert np.isclose(_width, width, atol=1e-2)
+    new_nz = model(z, nz, shift, width)
+    _mu = np.average(z, weights=new_nz)
+    _shift = _mu - mu
+    _std = np.sqrt(np.average((z - _mu) ** 2, weights=new_nz))
+    _width = _std / std
+    assert np.isclose(_shift, shift, atol=1e-3)
+    assert np.isclose(_width, width, atol=1e-3)
