@@ -12,20 +12,21 @@ from .utils import make_cov_posdef
 
 
 class PriorSacc(PriorBase):
-    def __init__(self, sacc_file, model="Shifts", compute_crosscorrs="Full", **kwargs):
-        if model == "Shifts":
+    def __init__(self, sacc_file, model_name="Shifts", compute_crosscorrs="Full", **kwargs):
+        self.model_name = model_name
+        if model_name == "Shifts":
             self.model = PriorShifts
             self.sacc_tracer = sacc.NZShiftUncertainty
-        if model == "ShiftsWidths":
+        if model_name == "ShiftsWidths":
             self.model = PriorShiftsWidths
             self.sacc_tracer = sacc.NZShiftStretchUncertainty
-        if model == "GP":
+        if model_name == "GP":
             self.model = PriorGP
             self.sacc_tracer = sacc.NZLinearUncertainty
-        if model == "Comb":
+        if model_name == "Comb":
             self.model = PriorComb
             self.sacc_tracer = sacc.NZLinearUncertainty
-        if model == "PCA":
+        if model_name == "PCA":
             self.model = PriorPCA
             self.sacc_tracer = sacc.NZLinearUncertainty
         self.sacc_file = sacc_file.copy()
@@ -39,15 +40,21 @@ class PriorSacc(PriorBase):
         self.prior_chol = None
         self.prior_transform = None
 
-    def save2sacc(self, name):
+    def save2sacc(self, file_name=None, tracer_name=None):
         self._get_prior()
+        if tracer_name is None:
+            tracer_name = self.model_name
         tracer = self.sacc_tracer(
-            name,
+            tracer_name,
             list(self.model_objs.keys()),
             self.prior_mean,
             self.prior_transform.T,
         )
+        # Add the tracer uncertainty object to the sacc file
         self.sacc_file.add_tracer_uncertainty_object(tracer)
+        # Save the sacc file
+        if file_name is not None:
+            self.sacc_file.save_fits(file_name, overwrite=True)
         return self.sacc_file
 
     def _make_model_objects(self, **kwargs):
