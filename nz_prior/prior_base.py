@@ -1,7 +1,6 @@
 import numpy as np
 from getdist import plots, MCSamples
 from scipy.stats import multivariate_normal as mvn
-from scipy.stats import kstest
 from .utils import normalize
 import qp
 

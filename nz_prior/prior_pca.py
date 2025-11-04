@@ -12,6 +12,7 @@ class PriorPCA(PriorLinear):
         super().__init__(ens, n=n, zgrid=zgrid)
         self.funcs = self._get_funcs()
         self.Ws = self._get_weights()
+        self.params = self._get_params()
 
     def _get_weights(self):
         Ws = []
