@@ -1,7 +1,6 @@
 import numpy as np
 from getdist import plots, MCSamples
 from scipy.stats import multivariate_normal as mvn
-from scipy.stats import kstest
 from .utils import normalize
 import qp
 
@@ -55,6 +54,8 @@ class PriorBase:
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
+        self.prior_transform = None
+        self.prior_basis = None # Only for linear models
 
     def get_prior(self):
         """
@@ -64,6 +65,14 @@ class PriorBase:
         if (self.prior_mean is None) | (self.prior_cov is None):
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
+
+    def get_transform(self):
+        """
+        Returns the transformation matrix for the model parameters.
+        """
+        if self.prior_transform is None:
+            self._get_prior()
+        return self.prior_transform
 
     def get_params(self):
         """

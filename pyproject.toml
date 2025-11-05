@@ -16,7 +16,12 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-dependencies = ['numpy', 'scipy', 'qp-prob', 'sacc', 'getdist']
+dependencies = [
+'numpy',
+'scipy',
+'qp-prob >= 1.0', 
+'sacc >= 2.1',
+'getdist']
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]

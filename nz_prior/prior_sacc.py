@@ -1,4 +1,5 @@
 import numpy as np
+import sacc
 from numpy.linalg import cholesky
 from scipy.linalg import block_diag
 from .prior_base import PriorBase
@@ -11,18 +12,24 @@ from .utils import make_cov_posdef
 
 
 class PriorSacc(PriorBase):
-    def __init__(self, sacc_file, model="Shifts", compute_crosscorrs="Full", **kwargs):
-        if model == "Shifts":
+    def __init__(self, sacc_file, model_name="Shifts", compute_crosscorrs="Full", **kwargs):
+        self.model_name = model_name
+        if model_name == "Shifts":
             self.model = PriorShifts
-        if model == "ShiftsWidths":
+            self.sacc_tracer = sacc.NZShiftUncertainty
+        if model_name == "ShiftsWidths":
             self.model = PriorShiftsWidths
-        if model == "GP":
+            self.sacc_tracer = sacc.NZShiftStretchUncertainty
+        if model_name == "GP":
             self.model = PriorGP
-        if model == "Comb":
+            self.sacc_tracer = sacc.NZLinearUncertainty
+        if model_name == "Comb":
             self.model = PriorComb
-        if model == "PCA":
+            self.sacc_tracer = sacc.NZLinearUncertainty
+        if model_name == "PCA":
             self.model = PriorPCA
-
+            self.sacc_tracer = sacc.NZLinearUncertainty
+        self.sacc_file = sacc_file.copy()
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
         self.model_objs = self._make_model_objects(**kwargs)
@@ -31,6 +38,24 @@ class PriorSacc(PriorBase):
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
+        self.prior_transform = None
+
+    def save2sacc(self, file_name=None, tracer_name=None):
+        self._get_prior()
+        if tracer_name is None:
+            tracer_name = self.model_name
+        tracer = self.sacc_tracer(
+            tracer_name,
+            list(self.model_objs.keys()),
+            self.prior_mean,
+            self.prior_transform.T,
+        )
+        # Add the tracer uncertainty object to the sacc file
+        self.sacc_file.add_tracer_uncertainty_object(tracer)
+        # Save the sacc file
+        if file_name is not None:
+            self.sacc_file.save_fits(file_name, overwrite=True)
+        return self.sacc_file
 
     def _make_model_objects(self, **kwargs):
         model_objs = {}
@@ -49,6 +74,7 @@ class PriorSacc(PriorBase):
             [np.mean(param_sets, axis=1) for param_sets in self.params]
         ).flatten()
         if self.compute_crosscorrs == "Full":
+            print("Computing full covariance matrix")
             params = []
             for param_sets in self.params:
                 for param_set in param_sets:
@@ -57,32 +83,48 @@ class PriorSacc(PriorBase):
             cov = np.cov(params)
             cov = make_cov_posdef(cov)
             chol = cholesky(cov)
+            transform = chol
         elif self.compute_crosscorrs == "BinWise":
             covs = []
             chols = []
+            transforms = []
             for tracer_name in list(self.tracers.keys()):
                 model_obj = self.model_objs[tracer_name]
                 _, cov, chol = model_obj.get_prior()
+                transform = model_obj.get_transform()
                 covs.append(cov)
                 chols.append(chol)
+                transforms.append(transform)
             covs = np.array(covs)
             chols = np.array(chols)
             cov = block_diag(*covs)
             chol = block_diag(*chols)
+            transform = block_diag(*transforms)
         elif self.compute_crosscorrs == "None":
             stds = []
+            Ws = []
             for param_sets in self.params:
                 for param_set in param_sets:
                     stds.append(np.std(param_set))
+            for tracer_name in list(self.tracers.keys()):
+                model_obj = self.model_objs[tracer_name]
+                _, cov, chol = model_obj.get_prior()
+                inv_chol = np.linalg.pinv(chol)
+                transform = model_obj.get_transform()
+                W = transform @ inv_chol
+                Ws.append(W)
+            W = block_diag(*Ws)
             stds = np.array(stds)
             cov = np.diag(stds**2)
             chol = np.diag(stds)
+            transform = W @ chol
         else:
             raise ValueError(
                 "Invalid compute_crosscorrs=={}".format(self.compute_crosscorrs)
             )
         self.prior_cov = cov
         self.prior_chol = chol
+        self.prior_transform = transform
 
     def _get_params_names(self):
         params_names = []
