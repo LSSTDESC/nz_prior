@@ -37,3 +37,16 @@ def test_sample_prior():
     prior_sample = prior.sample_prior()
     prior_params = len(list(prior_sample.values()))
     assert prior_params == 2
+
+
+def test_save_prior():
+    prior = make_prior()
+    name = "test"
+    ss = prior.save2sacc(file_name="./test.sacc", tracer_name=name)
+    ss_loaded = sacc.Sacc.load_fits("./test.sacc")
+
+    assert (ss.tracer_uncertainties[name].tracer_names ==
+            ss_loaded.tracer_uncertainties[name].tracer_names)
+    assert (ss.tracer_uncertainties[name].mean ==
+            ss_loaded.tracer_uncertainties[name].mean).all()
+    assert ss.tracer_uncertainties[name].nparams == ss_loaded.tracer_uncertainties[name].nparams
