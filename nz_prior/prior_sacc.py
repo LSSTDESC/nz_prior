@@ -50,14 +50,13 @@ class PriorSacc(PriorBase):
         # add the model matrix to the mean and chol
         mean = self.prior_mean
         chol = self.prior_chol
-        if isinstance(self.model, PriorLinear):
+        if issubclass(self.model, PriorLinear):
             W = []
             for tracer in self.model_objs.values():
                 W.append(tracer.get_funcs())
             W = block_diag(*W)
             mean = W @ self.prior_mean
             chol = W @ self.prior_chol
-
         if tracer_name is None:
             tracer_name = self.model_name
         tracer = self.sacc_tracer(
