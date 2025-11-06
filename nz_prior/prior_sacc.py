@@ -48,7 +48,7 @@ class PriorSacc(PriorBase):
             tracer_name,
             list(self.model_objs.keys()),
             self.prior_mean,
-            self.prior_transform.T,
+            self.prior_transform,
         )
         # Add the tracer uncertainty object to the sacc file
         self.sacc_file.add_tracer_uncertainty_object(tracer)
