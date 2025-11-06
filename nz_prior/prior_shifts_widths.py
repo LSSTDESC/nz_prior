@@ -26,6 +26,7 @@ class PriorShiftsWidths(PriorBase):
 
     def __init__(self, ens, zgrid=None, optimize_widths=None):
         super().__init__(ens, zgrid=zgrid)
+        self.nparams = 2
         if optimize_widths is not None:
             self.optimize_widths = optimize_widths
         else:
