@@ -8,8 +8,8 @@ class PriorPCA(PriorLinear):
     Prior for the PCA model.
     """
 
-    def __init__(self, ens, n=5, zgrid=None):
-        super().__init__(ens, n=n, zgrid=zgrid)
+    def __init__(self, ens, nparams=5, zgrid=None):
+        super().__init__(ens, nparams=nparams, zgrid=zgrid)
         self.funcs = self._get_funcs()
         self.Ws = self._get_weights()
         self.params = self._get_params()
@@ -18,7 +18,7 @@ class PriorPCA(PriorLinear):
         Ws = []
         for nz in self.nzs:
             dnz = nz - self.nz_mean
-            W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.n)]
+            W = [np.dot(dnz, self.funcs.T[i]) for i in np.arange(self.nparams)]
             Ws.append(W)
         return np.array(Ws)
 
@@ -31,6 +31,6 @@ class PriorPCA(PriorLinear):
         idx = np.argsort(eigvals)[::-1]
         eigvals = eigvals[idx]
         eigvecs = eigvecs[:, idx]
-        eigvecs = eigvecs[:, : self.n]
-        eigvals = eigvals[: self.n]
+        eigvecs = eigvecs[:, : self.nparams]
+        eigvals = eigvals[: self.nparams]
         return eigvecs

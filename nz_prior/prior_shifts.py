@@ -19,6 +19,7 @@ class PriorShifts(PriorBase):
 
     def __init__(self, ens, zgrid=None):
         super().__init__(ens, zgrid=zgrid)
+        self.nparams = 1
         self.shifts = self._find_shifts()
         self.params = self._get_params()
 

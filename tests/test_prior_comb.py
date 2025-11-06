@@ -12,10 +12,10 @@ def make_qp_ens(file):
     return q
 
 
-def make_prior(n=10):
+def make_prior(nparams=10):
     file = np.load("tests/dummy.npz")
     ens = make_qp_ens(file)
-    return nzp.PriorComb(ens, n=n)
+    return nzp.PriorComb(ens, nparams=nparams)
 
 
 def test_prior():
@@ -25,7 +25,7 @@ def test_prior():
 
 
 def test_sample_prior():
-    n = 10
-    prior = make_prior(n=n)
+    nparams = 10
+    prior = make_prior(nparams=nparams)
     prior_sample = prior.sample_prior()
-    assert len(list(prior_sample.values())) == n
+    assert len(list(prior_sample.values())) == nparams

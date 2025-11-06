@@ -9,9 +9,9 @@ class PriorLinear(PriorBase):
     Prior for the PCA model.
     """
 
-    def __init__(self, ens, n=5, zgrid=None):
-        self.n = n
+    def __init__(self, ens, nparams=5, zgrid=None):
         super().__init__(ens, zgrid=zgrid)
+        self.nparams = nparams
         self.funcs = None
         self.Ws = None
 
@@ -39,7 +39,7 @@ class PriorLinear(PriorBase):
         cov = make_cov_posdef(cov)
         chol = cholesky(cov)
         W = self.funcs
-        self.prior_mean = mean
+        self.prior_mean = W @ mean
         self.prior_cov = cov
         self.prior_chol = chol
         self.prior_transform = W @ chol

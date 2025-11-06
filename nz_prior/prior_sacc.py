@@ -8,6 +8,7 @@ from .prior_shifts_widths import PriorShiftsWidths
 from .prior_comb import PriorComb
 from .prior_gp import PriorGP
 from .prior_pca import PriorPCA
+from .prior_linear import PriorLinear
 from .utils import make_cov_posdef
 
 
@@ -17,18 +18,20 @@ class PriorSacc(PriorBase):
         if model_name == "Shifts":
             self.model = PriorShifts
             self.sacc_tracer = sacc.NZShiftUncertainty
-        if model_name == "ShiftsWidths":
+        elif model_name == "ShiftsWidths":
             self.model = PriorShiftsWidths
             self.sacc_tracer = sacc.NZShiftStretchUncertainty
-        if model_name == "GP":
+        elif model_name == "GP":
             self.model = PriorGP
             self.sacc_tracer = sacc.NZLinearUncertainty
-        if model_name == "Comb":
+        elif model_name == "Comb":
             self.model = PriorComb
             self.sacc_tracer = sacc.NZLinearUncertainty
-        if model_name == "PCA":
+        elif model_name == "PCA":
             self.model = PriorPCA
             self.sacc_tracer = sacc.NZLinearUncertainty
+        else:
+            raise ValueError("Model not implemented =={}".format(model_name))
         self.sacc_file = sacc_file.copy()
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
@@ -68,11 +71,18 @@ class PriorSacc(PriorBase):
         return model_objs
 
     def _get_prior(self):
+        # The mean computation is the same for all cross-corr options
+        means = []
+        for tracer_name in list(self.tracers.keys()):
+            model_obj = self.model_objs[tracer_name]
+            mean, _, _ = model_obj.get_prior()
+            means.append(mean)
+        self.prior_mean = np.array(means).flatten()
+        self.nparams = np.sum([model_obj.nparams for model_obj in self.model_objs.values()])
+
+        # Now compute the covariance and transform based on cross-corr option
         self.get_params()
         self.get_params_names()
-        self.prior_mean = np.array(
-            [np.mean(param_sets, axis=1) for param_sets in self.params]
-        ).flatten()
         if self.compute_crosscorrs == "Full":
             print("Computing full covariance matrix")
             params = []
@@ -83,14 +93,21 @@ class PriorSacc(PriorBase):
             cov = np.cov(params)
             cov = make_cov_posdef(cov)
             chol = cholesky(cov)
-            transform = chol
+            if isinstance(self.model, PriorLinear):
+                Ws = [model_obj.funcs for model_obj in self.model_objs.values()]
+                W = block_diag(*Ws)
+                transform = W @ chol
+            else:
+                transform = chol
         elif self.compute_crosscorrs == "BinWise":
             covs = []
             chols = []
             transforms = []
             for tracer_name in list(self.tracers.keys()):
                 model_obj = self.model_objs[tracer_name]
-                _, cov, chol = model_obj.get_prior()
+                model_obj._get_prior()
+                cov = model_obj.prior_cov
+                chol = model_obj.prior_chol
                 transform = model_obj.get_transform()
                 covs.append(cov)
                 chols.append(chol)
@@ -101,23 +118,29 @@ class PriorSacc(PriorBase):
             chol = block_diag(*chols)
             transform = block_diag(*transforms)
         elif self.compute_crosscorrs == "None":
-            stds = []
-            Ws = []
-            for param_sets in self.params:
-                for param_set in param_sets:
-                    stds.append(np.std(param_set))
+            covs = []
+            chols = []
+            transforms = []
             for tracer_name in list(self.tracers.keys()):
                 model_obj = self.model_objs[tracer_name]
-                _, cov, chol = model_obj.get_prior()
-                inv_chol = np.linalg.pinv(chol)
+                model_obj._get_prior()
+                cov = model_obj.prior_cov
+                chol = model_obj.prior_chol
                 transform = model_obj.get_transform()
-                W = transform @ inv_chol
-                Ws.append(W)
-            W = block_diag(*Ws)
-            stds = np.array(stds)
-            cov = np.diag(stds**2)
-            chol = np.diag(stds)
-            transform = W @ chol
+                covs.append(cov)
+                chols.append(chol)
+                transforms.append(transform)
+            covs = np.array(covs)
+            chols = np.array(chols)
+            for chol in chols:
+                print("Prior chol shape: ", chol.shape)
+            inv_chols = [np.linalg.inv(chol) for chol in chols]
+            diag_covs = [np.diag(np.diag(cov)) for cov in covs]
+            diag_chols = [cholesky(cov) for cov in diag_covs]
+            diag_transforms = [transform @ inv_chol @ diag_chol for transform, inv_chol, diag_chol in zip(transforms, inv_chols, diag_chols)]
+            cov = block_diag(*diag_covs)
+            chol = block_diag(*diag_chols)
+            transform = block_diag(*diag_transforms)
         else:
             raise ValueError(
                 "Invalid compute_crosscorrs=={}".format(self.compute_crosscorrs)
