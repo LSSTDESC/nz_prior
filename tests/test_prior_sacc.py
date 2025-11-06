@@ -23,7 +23,7 @@ def make_prior():
     s = sacc.Sacc()
     s.add_tracer("QPNZ", "source_0", ens, z=zs)
     s.add_tracer("QPNZ", "source_1", ens, z=zs)
-    return nzp.PriorSacc(s)
+    return nzp.PriorSacc(s, model_name="PCA", compute_crosscorrs="BinWise", nparams=5)
 
 
 def test_prior():
@@ -36,17 +36,15 @@ def test_sample_prior():
     prior = make_prior()
     prior_sample = prior.sample_prior()
     prior_params = len(list(prior_sample.values()))
-    assert prior_params == 2
+    assert prior_params == 10
 
 
 def test_save_prior():
     prior = make_prior()
     name = "test"
-    ss = prior.save2sacc(file_name="./test.sacc", tracer_name=name)
-    ss_loaded = sacc.Sacc.load_fits("./test.sacc")
+    ss = prior.save(tracer_name=name)
 
     assert (ss.tracer_uncertainties[name].tracer_names ==
-            ss_loaded.tracer_uncertainties[name].tracer_names)
+            list(prior.tracers.keys()))
     assert (ss.tracer_uncertainties[name].mean ==
-            ss_loaded.tracer_uncertainties[name].mean).all()
-    assert ss.tracer_uncertainties[name].nparams == ss_loaded.tracer_uncertainties[name].nparams
+            prior.prior_mean).all()

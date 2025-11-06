@@ -45,6 +45,7 @@ class PriorBase:
         else:
             self.z = z
 
+        self.nparams = None
         self.ens = ens
         self.nzs = normalize(nzs)
         self.nz_mean = np.mean(self.nzs, axis=0)
@@ -54,8 +55,6 @@ class PriorBase:
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
-        self.prior_transform = None
-        self.prior_basis = None # Only for linear models
 
     def get_prior(self):
         """
@@ -104,13 +103,13 @@ class PriorBase:
         Draws a sample from the prior distribution.
         """
         prior_mean, prior_cov, prior_chol = self.get_prior()
-        prior_dist = mvn(np.zeros_like(prior_mean), np.ones_like(prior_mean))
+        prior_dist = mvn(np.zeros(self.nparams), np.ones(self.nparams))
         alpha = prior_dist.rvs()
         if type(alpha) is np.float64:
             alpha = np.array([alpha])
         values = prior_mean + prior_chol @ alpha
         param_names = self.get_params_names()
-        samples = {param_names[i]: values[i] for i in range(len(values))}
+        samples = {param_names[i]: values[i] for i in range(self.nparams)}
         return samples
 
     def plot_prior(

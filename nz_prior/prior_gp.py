@@ -7,8 +7,8 @@ class PriorGP(PriorLinear):
     Prior for the moments model.
     """
 
-    def __init__(self, ens, n=5, zgrid=None):
-        super().__init__(ens, n=n, zgrid=zgrid)
+    def __init__(self, ens, nparams=5, zgrid=None):
+        super().__init__(ens, nparams=nparams, zgrid=zgrid)
         self.Ws = self._get_weights()
         self.funcs = self._get_funcs()
         self.params = self._get_params()
@@ -18,7 +18,7 @@ class PriorGP(PriorLinear):
         z_edges[1:-1] = 0.5 * (self.z[1:] + self.z[:-1])
         z_edges[0] = self.z[0] - (self.z[1] - self.z[0]) / 2
         z_edges[-1] = self.z[-1] + (self.z[-1] - self.z[-2]) / 2
-        q_edges = np.linspace(self.z[0], self.z[-1], self.n + 1)
+        q_edges = np.linspace(self.z[0], self.z[-1], self.nparams + 1)
         q = 0.5 * (q_edges[1:] + q_edges[:-1])
         return q
 
@@ -36,8 +36,8 @@ class PriorGP(PriorLinear):
         nzq_mean = np.mean(nzqs, axis=0)
         dnzqs = nzqs - nzq_mean
         cov_zzqq = np.cov(dnzqs.T)
-        cov_qq = cov_zzqq[len(self.nz_mean) :, len(self.nz_mean) :]
-        cov_zq = cov_zzqq[: len(self.nz_mean), len(self.nz_mean) :]
+        cov_qq = cov_zzqq[len(self.nz_mean) :, len(self.nz_mean):]
+        cov_zq = cov_zzqq[: len(self.nz_mean), len(self.nz_mean):]
         inv_cov_qq = np.linalg.pinv(cov_qq)
         wiener = np.dot(cov_zq, inv_cov_qq)
         return wiener
