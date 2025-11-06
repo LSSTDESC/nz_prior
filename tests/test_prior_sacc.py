@@ -23,7 +23,7 @@ def make_prior():
     s = sacc.Sacc()
     s.add_tracer("QPNZ", "source_0", ens, z=zs)
     s.add_tracer("QPNZ", "source_1", ens, z=zs)
-    return nzp.PriorSacc(s, model_name="PCA", compute_crosscorrs="BinWise", nparams=5)
+    return nzp.PriorSacc(s, model_name="Shifts", compute_crosscorrs="BinWise")
 
 
 def test_prior():
@@ -36,7 +36,7 @@ def test_sample_prior():
     prior = make_prior()
     prior_sample = prior.sample_prior()
     prior_params = len(list(prior_sample.values()))
-    assert prior_params == 10
+    assert prior_params == 2
 
 
 def test_save_prior():
