@@ -38,11 +38,9 @@ class PriorLinear(PriorBase):
         cov = np.cov(self.Ws.T)
         cov = make_cov_posdef(cov)
         chol = cholesky(cov)
-        W = self.funcs
-        self.prior_mean = W @ mean
+        self.prior_mean = mean
         self.prior_cov = cov
         self.prior_chol = chol
-        self.prior_transform = W @ chol
 
     def _get_params(self):
         return self.Ws.T
