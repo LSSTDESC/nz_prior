@@ -2,8 +2,9 @@ import numpy as np
 from numpy.linalg import eig, cholesky
 
 
-def normalize(nzs):
-    norms = np.sum(nzs, axis=1)
+def normalize(nzs, zs):
+    dz = zs[1] - zs[0]
+    norms = np.sum(nzs, axis=1) * dz
     nzs = nzs / norms[:, None]
     return nzs
 

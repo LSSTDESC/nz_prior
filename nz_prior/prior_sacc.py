@@ -41,6 +41,8 @@ class PriorSacc(PriorBase):
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
+        # Only for linear models
+        self.prior_model = None
 
     def save(self, tracer_name=None):
         # Compute the prior if not already done
@@ -51,12 +53,12 @@ class PriorSacc(PriorBase):
         mean = self.prior_mean
         chol = self.prior_chol
         if issubclass(self.model, PriorLinear):
-            W = []
+            self.prior_model = []
             for tracer in self.model_objs.values():
-                W.append(tracer.get_funcs())
-            W = block_diag(*W)
-            mean = W @ self.prior_mean
-            chol = W @ self.prior_chol
+                self.prior_model.append(tracer.get_funcs())
+            self.prior_model = block_diag(*self.prior_model)
+            mean = self.prior_model @ self.prior_mean
+            chol = self.prior_model @ self.prior_chol
         if tracer_name is None:
             tracer_name = self.model_name
         tracer = self.sacc_tracer(
