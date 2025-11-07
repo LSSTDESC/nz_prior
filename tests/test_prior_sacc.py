@@ -43,8 +43,8 @@ def test_save_prior():
     prior = make_prior()
     name = "test"
     ss = prior.save(tracer_name=name)
-
-    assert (ss.tracer_uncertainties[name].tracer_names ==
-            list(prior.tracers.keys()))
-    assert (ss.tracer_uncertainties[name].mean ==
-            prior.prior_mean).all()
+    _prior = ss.tracer_uncertainties[name]
+    assert _prior.nparams == 1
+    assert _prior.tracer_names == list(prior.tracers.keys())
+    assert (_prior.mean ==  prior.prior_mean).all()
+    assert (_prior.linear_transformation == prior.prior_chol).all()

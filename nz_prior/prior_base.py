@@ -47,7 +47,7 @@ class PriorBase:
 
         self.nparams = None
         self.ens = ens
-        self.nzs = normalize(nzs)
+        self.nzs = normalize(nzs, z)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nz_cov = np.cov(self.nzs, rowvar=False)
         self.params = None
