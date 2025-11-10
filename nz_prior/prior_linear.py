@@ -9,9 +9,9 @@ class PriorLinear(PriorBase):
     Prior for the PCA model.
     """
 
-    def __init__(self, ens, n=5, zgrid=None):
-        self.n = n
+    def __init__(self, ens, nparams=5, zgrid=None):
         super().__init__(ens, zgrid=zgrid)
+        self.nparams = nparams
         self.funcs = None
         self.Ws = None
 

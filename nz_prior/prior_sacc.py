@@ -1,4 +1,5 @@
 import numpy as np
+import sacc
 from numpy.linalg import cholesky
 from scipy.linalg import block_diag
 from .prior_base import PriorBase
@@ -7,22 +8,31 @@ from .prior_shifts_widths import PriorShiftsWidths
 from .prior_comb import PriorComb
 from .prior_gp import PriorGP
 from .prior_pca import PriorPCA
+from .prior_linear import PriorLinear
 from .utils import make_cov_posdef
 
 
 class PriorSacc(PriorBase):
-    def __init__(self, sacc_file, model="Shifts", compute_crosscorrs="Full", **kwargs):
-        if model == "Shifts":
+    def __init__(self, sacc_file, model_name="Shifts", compute_crosscorrs="Full", **kwargs):
+        self.model_name = model_name
+        if model_name == "Shifts":
             self.model = PriorShifts
-        if model == "ShiftsWidths":
+            self.sacc_tracer = sacc.NZShiftUncertainty
+        elif model_name == "ShiftsWidths":
             self.model = PriorShiftsWidths
-        if model == "GP":
+            self.sacc_tracer = sacc.NZShiftStretchUncertainty
+        elif model_name == "GP":
             self.model = PriorGP
-        if model == "Comb":
+            self.sacc_tracer = sacc.NZLinearUncertainty
+        elif model_name == "Comb":
             self.model = PriorComb
-        if model == "PCA":
+            self.sacc_tracer = sacc.NZLinearUncertainty
+        elif model_name == "PCA":
             self.model = PriorPCA
-
+            self.sacc_tracer = sacc.NZLinearUncertainty
+        else:
+            raise ValueError("Model not implemented =={}".format(model_name))
+        self.sacc_file = sacc_file.copy()
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
         self.model_objs = self._make_model_objects(**kwargs)
@@ -31,6 +41,35 @@ class PriorSacc(PriorBase):
         self.prior_mean = None
         self.prior_cov = None
         self.prior_chol = None
+        # Only for linear models
+        self.prior_model = None
+
+    def save(self, tracer_name=None):
+        # Compute the prior if not already done
+        self.get_prior()
+
+        # if model is instance of PriorLinear 
+        # add the model matrix to the mean and chol
+        mean = self.prior_mean
+        chol = self.prior_chol
+        if issubclass(self.model, PriorLinear):
+            self.prior_model = []
+            for tracer in self.model_objs.values():
+                self.prior_model.append(tracer.get_funcs())
+            self.prior_model = block_diag(*self.prior_model)
+            mean = self.prior_model @ self.prior_mean
+            chol = self.prior_model @ self.prior_chol
+        if tracer_name is None:
+            tracer_name = self.model_name
+        tracer = self.sacc_tracer(
+            tracer_name,
+            list(self.model_objs.keys()),
+            mean,
+            chol,
+        )
+        # Add the tracer uncertainty object to the sacc file
+        self.sacc_file.add_tracer_uncertainty_object(tracer)
+        return self.sacc_file
 
     def _make_model_objects(self, **kwargs):
         model_objs = {}
@@ -43,12 +82,19 @@ class PriorSacc(PriorBase):
         return model_objs
 
     def _get_prior(self):
+        # The mean computation is the same for all cross-corr options
+        means = []
+        for model_obj in self.model_objs.values():
+            model_obj._get_prior()
+            means.append(model_obj.prior_mean)
+        self.prior_mean = np.array(means).flatten()
+        self.nparams = np.sum([model_obj.nparams for model_obj in self.model_objs.values()])
+
+        # Now compute the covariance and transform based on cross-corr option
         self.get_params()
         self.get_params_names()
-        self.prior_mean = np.array(
-            [np.mean(param_sets, axis=1) for param_sets in self.params]
-        ).flatten()
         if self.compute_crosscorrs == "Full":
+            print("Computing full covariance matrix")
             params = []
             for param_sets in self.params:
                 for param_set in param_sets:
@@ -62,7 +108,9 @@ class PriorSacc(PriorBase):
             chols = []
             for tracer_name in list(self.tracers.keys()):
                 model_obj = self.model_objs[tracer_name]
-                _, cov, chol = model_obj.get_prior()
+                model_obj._get_prior()
+                cov = model_obj.prior_cov
+                chol = model_obj.prior_chol
                 covs.append(cov)
                 chols.append(chol)
             covs = np.array(covs)
@@ -70,13 +118,21 @@ class PriorSacc(PriorBase):
             cov = block_diag(*covs)
             chol = block_diag(*chols)
         elif self.compute_crosscorrs == "None":
-            stds = []
-            for param_sets in self.params:
-                for param_set in param_sets:
-                    stds.append(np.std(param_set))
-            stds = np.array(stds)
-            cov = np.diag(stds**2)
-            chol = np.diag(stds)
+            covs = []
+            chols = []
+            for tracer_name in list(self.tracers.keys()):
+                model_obj = self.model_objs[tracer_name]
+                model_obj._get_prior()
+                cov = model_obj.prior_cov
+                chol = model_obj.prior_chol
+                covs.append(cov)
+                chols.append(chol)
+            covs = np.array(covs)
+            chols = np.array(chols)
+            diag_covs = [np.diag(np.diag(cov)) for cov in covs]
+            diag_chols = [cholesky(cov) for cov in diag_covs]
+            cov = block_diag(*diag_covs)
+            chol = block_diag(*diag_chols)
         else:
             raise ValueError(
                 "Invalid compute_crosscorrs=={}".format(self.compute_crosscorrs)

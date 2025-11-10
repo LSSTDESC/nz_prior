@@ -1,7 +1,6 @@
 import numpy as np
 from getdist import plots, MCSamples
 from scipy.stats import multivariate_normal as mvn
-from scipy.stats import kstest
 from .utils import normalize
 import qp
 
@@ -30,10 +29,10 @@ class PriorBase:
             Redshift grid to use for the prior. If None, the redshift
             grid of the ensemble is used.
         """
-        if type(ens) is qp.ensemble.Ensemble:
-            z_edges = ens.metadata()["bins"][0]
+        if type(ens) is qp.Ensemble:
+            z_edges = ens.metadata["bins"]
             z = 0.5 * (z_edges[1:] + z_edges[:-1])
-            nzs = ens.objdata()["pdfs"]
+            nzs = ens.objdata["pdfs"]
         elif type(ens) is list:
             z = ens[0]
             nzs = ens[1]
@@ -46,8 +45,9 @@ class PriorBase:
         else:
             self.z = z
 
+        self.nparams = None
         self.ens = ens
-        self.nzs = normalize(nzs)
+        self.nzs = normalize(nzs, z)
         self.nz_mean = np.mean(self.nzs, axis=0)
         self.nz_cov = np.cov(self.nzs, rowvar=False)
         self.params = None
@@ -64,6 +64,14 @@ class PriorBase:
         if (self.prior_mean is None) | (self.prior_cov is None):
             self.prior = self._get_prior()
         return self.prior_mean, self.prior_cov, self.prior_chol
+
+    def get_transform(self):
+        """
+        Returns the transformation matrix for the model parameters.
+        """
+        if self.prior_transform is None:
+            self._get_prior()
+        return self.prior_transform
 
     def get_params(self):
         """
@@ -95,13 +103,13 @@ class PriorBase:
         Draws a sample from the prior distribution.
         """
         prior_mean, prior_cov, prior_chol = self.get_prior()
-        prior_dist = mvn(np.zeros_like(prior_mean), np.ones_like(prior_mean))
+        prior_dist = mvn(np.zeros(self.nparams), np.ones(self.nparams))
         alpha = prior_dist.rvs()
         if type(alpha) is np.float64:
             alpha = np.array([alpha])
         values = prior_mean + prior_chol @ alpha
         param_names = self.get_params_names()
-        samples = {param_names[i]: values[i] for i in range(len(values))}
+        samples = {param_names[i]: values[i] for i in range(self.nparams)}
         return samples
 
     def plot_prior(
