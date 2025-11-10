@@ -83,15 +83,15 @@ class PriorShiftsWidths(PriorBase):
         # with same mean and stddev. Then we measure the expected value
         # of z under the absolute difference distribution.
         nz_mean = self.nz_mean
-        z = self.z
         mu = np.average(self.z, weights=self.nz_mean)
         sigma = np.sqrt(np.average((self.z - mu)**2, weights=self.nz_mean))
         gaussian_nz = np.exp(-0.5 * ((self.z - mu) / sigma) ** 2)
         gaussian_nz /= np.sum(gaussian_nz)
-        d = nz_mean - gaussian_nz
-        _mu = np.average(z, weights=np.abs(d))
-        diff = np.abs(mu - _mu)/mu
-        return diff > 0.01
+        d = (nz_mean - gaussian_nz)/gaussian_nz
+        d = d[nz_mean > 0.01 * np.max(nz_mean)]
+        d = np.mean(d)
+        print("Gaussianity test diff: ", d)
+        return d > 1
 
     def _get_prior(self):
         params = self._get_params().T
