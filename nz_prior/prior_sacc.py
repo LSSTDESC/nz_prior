@@ -12,26 +12,41 @@ from .utils import make_cov_posdef
 
 
 class PriorSacc(PriorBase):
-    def __init__(self, sacc_file, model_name="Shifts", compute_crosscorrs="Full", **kwargs):
+    def __init__(
+        self,
+        sacc_file,
+        model_name="Shifts",
+        model=None,
+        compute_crosscorrs="Full",
+        **kwargs,
+    ):
+        if model is not None:
+            model_name = model
+
         self.model_name = model_name
         if model_name == "Shifts":
             self.model = PriorShifts
             self.sacc_tracer = sacc.NZShiftUncertainty
-        if model_name == "ShiftsWidths":
+        elif model_name == "ShiftsWidths":
             self.model = PriorShiftsWidths
             self.sacc_tracer = sacc.NZShiftStretchUncertainty
-        if model_name == "GP":
+        elif model_name == "GP":
             self.model = PriorGP
             self.sacc_tracer = sacc.NZLinearUncertainty
-        if model_name == "Comb":
+        elif model_name == "Comb":
             self.model = PriorComb
             self.sacc_tracer = sacc.NZLinearUncertainty
-        if model_name == "PCA":
+        elif model_name == "PCA":
             self.model = PriorPCA
             self.sacc_tracer = sacc.NZLinearUncertainty
+        else:
+            raise ValueError(f"Model not implemented =={model_name}")
         self.sacc_file = sacc_file.copy()
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
+        kwargs.pop("model", None)
+        kwargs.pop("model_name", None)
+        kwargs.pop("compute_crosscorrs", None)
         self.model_objs = self._make_model_objects(**kwargs)
         self.params = None
         self.params_names = None
