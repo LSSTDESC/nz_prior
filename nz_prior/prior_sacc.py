@@ -35,6 +35,8 @@ class PriorSacc(PriorBase):
         self.sacc_file = sacc_file.copy()
         self.compute_crosscorrs = compute_crosscorrs
         self.tracers = sacc_file.tracers
+        kwargs.pop("model_name", None)
+        kwargs.pop("compute_crosscorrs", None)
         self.model_objs = self._make_model_objects(**kwargs)
         self.params = None
         self.params_names = None
