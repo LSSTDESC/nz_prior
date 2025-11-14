@@ -18,11 +18,14 @@ def shift_and_width_model(z, nz, shift, width):
     return pdf / norm
 
 
-def linear_model(nz, W, alpha):
+def linear_model(z, nz, W, alpha):
     """
     Linear model for the n(z) distribution.
     This is done by applying the linear transformation
     nz_mean + W * alpha where W is a matrix of weights
     and alpha is a vector of coefficients.
     """
-    return nz + np.dot(W, alpha)
+    dz = z[1] - z[0]
+    norm = np.sum(nz) * dz
+    pdf = nz + np.dot(W, alpha)
+    return pdf / norm
