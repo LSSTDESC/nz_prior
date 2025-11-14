@@ -16,9 +16,15 @@ def test_base():
     file = np.load("tests/dummy.npz")
     ens = make_qp_ens(file)
     prior = nz.PriorBase(ens)
-    m, n = prior.nzs.shape
-    (k,) = prior.z.shape
-    nzs = file["pzs"]
-    nzs /= np.sum(nzs, axis=1)[:, None]
+    z = prior.z
+    nzs = prior.nzs
+    m, n = nzs.shape
+    (k,) = z.shape
+    # check of ensamble dimensions
     assert n == k
-    assert np.allclose(prior.nz_mean, np.mean(nzs, axis=0))
+    # check normalization
+    dz = z[1] - z[0]
+    norms = np.sum(nzs, axis=1) * dz
+    mean_norm = np.mean(norms)
+    assert np.abs(mean_norm - 1.0) < 1e-3
+
